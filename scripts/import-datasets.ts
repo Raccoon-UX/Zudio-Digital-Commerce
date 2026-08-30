@@ -1,9 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma/client";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 // City coordinates mapping for accurate Store Locator and Haversine distance
 const CITY_COORDINATES: Record<string, { lat: number; lng: number; defaultState: string }> = {

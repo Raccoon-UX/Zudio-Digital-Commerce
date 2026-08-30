@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma/client";
 import { importDataset } from "../scripts/import-datasets";
-
-const prisma = new PrismaClient();
 
 async function main() {
   await importDataset();
