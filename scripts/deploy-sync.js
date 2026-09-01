@@ -28,6 +28,17 @@ if (isRemoteUrl) {
   } catch (error) {
     console.error("⚠️ Prisma schema synchronization error:", error.message);
   }
+
+  console.log("🌱 Ingesting Zudio CSV dataset into PostgreSQL...");
+  try {
+    execSync("npx tsx scripts/import-datasets.ts", {
+      stdio: "inherit",
+      env: process.env,
+    });
+    console.log("✅ Dataset ingestion complete.");
+  } catch (error) {
+    console.error("⚠️ Dataset ingestion error:", error.message);
+  }
 } else {
   console.log("ℹ️ Skipping build-time database synchronization (no remote database URL in current environment).");
 }
