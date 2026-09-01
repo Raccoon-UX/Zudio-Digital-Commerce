@@ -7,6 +7,7 @@ import {
   PaginatedProductsDTO,
 } from "./types";
 import { Prisma } from "@prisma/client";
+import { getCuratedFashionImages } from "@/lib/fashion-images";
 
 export async function getProducts(
   params: ProductQueryParams = {}
@@ -139,8 +140,20 @@ export async function getProducts(
         }
       });
 
+      // Extract clothing type from product name or slug for optimal fashion imagery
+      const nameTokens = p.name.split(" ");
+      const clothingType =
+        nameTokens.find((w) =>
+          ["Dresses", "Tops", "Hoodies", "T-shirts", "Shirts", "Shoes", "Sweaters", "Pants", "Jackets", "Jeans", "Skirts"].includes(w)
+        ) || p.category.name;
+
+      const curated = getCuratedFashionImages(p.category.name, clothingType, p.id);
+
       const primaryImg = p.images.find((img) => img.isPrimary) || p.images[0];
       const secondaryImg = p.images.find((img) => !img.isPrimary && img.id !== primaryImg?.id) || null;
+
+      const finalPrimaryUrl = primaryImg?.url || curated.primary;
+      const finalSecondaryUrl = secondaryImg?.url || curated.secondary;
 
       return {
         id: p.id,
@@ -150,8 +163,8 @@ export async function getProducts(
         categorySlug: p.category.slug,
         price: minP,
         compareAtPrice: comparePrice,
-        imageUrl: primaryImg?.url || "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80",
-        secondaryImageUrl: secondaryImg?.url || null,
+        imageUrl: finalPrimaryUrl,
+        secondaryImageUrl: finalSecondaryUrl,
         isNewArrival: p.isNewArrival,
         isFeatured: p.isFeatured,
         availableSizes: Array.from(sizeSet),
