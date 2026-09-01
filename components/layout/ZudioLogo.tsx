@@ -4,32 +4,18 @@ interface ZudioLogoProps {
   className?: string;
 }
 
-/**
- * Compact Zudio wordmark used throughout the concept prototype.
- * Kept as inline SVG so it renders crisply without a third-party asset dependency.
- */
+const ZUDIO_WORDMARK = "https://cdn.brandfetch.io/idbOaCAw5z/w/222/h/44/theme/light/logo.png?c=1bxid64Mup7aczewSAYMX&t=1781708290103";
+
 export const ZudioLogo: React.FC<ZudioLogoProps> = ({ className = "" }) => {
   return (
-    <svg
-      viewBox="0 0 300 82"
-      role="img"
-      aria-label="Zudio"
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <title>Zudio</title>
-      <text
-        x="3"
-        y="65"
-        fill="currentColor"
-        fontFamily="Arial Rounded MT Bold, Trebuchet MS, Arial, sans-serif"
-        fontSize="70"
-        fontWeight="800"
-        letterSpacing="-5"
-      >
-        zudio
-      </text>
-    </svg>
+    <img
+      src={ZUDIO_WORDMARK}
+      alt="Zudio"
+      className={`object-contain object-left ${className}`}
+      width={111}
+      height={22}
+      referrerPolicy="no-referrer"
+    />
   );
 };
 
