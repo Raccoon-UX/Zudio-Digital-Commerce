@@ -127,7 +127,6 @@ export async function importDataset() {
 
   const content = fs.readFileSync(csvPath, "utf-8");
   const lines = content.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
-  const headers = parseCsvLine(lines[0]);
 
   console.log(`📄 Loaded ${lines.length - 1} records from Zudio_sales_data.csv.`);
 
@@ -204,19 +203,20 @@ export async function importDataset() {
   }
   console.log(`✅ Configured ${colorDefs.length} fashion color swatches.`);
 
-  // 4. Parse & Upsert Stores from Dataset
-  console.log("\n🏬 Extracting & Upserting Stores from Dataset...");
-  const rawStores = new Map<string, any>();
+  // 4. Extract Canonical 100 Stores (Store #1..#100) from Dataset
+  console.log("\n🏬 Extracting Canonical Store #1..#100 from Dataset...");
+  const canonicalStoreData = new Map<number, any>();
   const rawProducts = new Map<string, { category: string; clothingType: string; prices: number[]; totalQuantitySold: number }>();
 
   for (let i = 1; i < lines.length; i++) {
     const row = parseCsvLine(lines[i]);
     if (row.length < 28) continue;
 
+    const state = row[2];
     const city = row[3];
     const category = row[4];
     const clothingType = row[5];
-    const storeNumber = row[6];
+    const storeNumber = parseInt(row[6], 10);
     const postalCode = row[7];
     const address = row[13];
     const contact = row[14];
@@ -225,22 +225,23 @@ export async function importDataset() {
     const price = parseFloat(row[25]) || 999;
     const quantity = parseInt(row[26], 10) || 1;
 
-    // Deduplicate store by city + storeNumber
-    const storeSlug = `zudio-${city.toLowerCase().replace(/[^a-z0-9]/g, "-")}-store-${storeNumber}`;
-    if (!rawStores.has(storeSlug)) {
-      const geo = CITY_COORDINATES[city] || { lat: 12.9716, lng: 77.5946, defaultState: row[2] || "Karnataka" };
-      rawStores.set(storeSlug, {
-        name: `Zudio ${city} (Store #${storeNumber})`,
-        slug: storeSlug,
-        city,
-        state: geo.defaultState,
-        pincode: postalCode && postalCode.length >= 6 ? postalCode.substring(0, 6) : "560038",
-        address: `${address || "Commercial Main Road"}, ${city}, ${geo.defaultState}`,
-        latitude: geo.lat + (parseInt(storeNumber, 10) % 10) * 0.005,
-        longitude: geo.lng + (parseInt(storeNumber, 10) % 10) * 0.005,
-        phone: contact || "+91 80 4123 4567",
-        openingHours: hours || "10:00 AM - 10:00 PM",
-      });
+    if (!isNaN(storeNumber) && storeNumber >= 1 && storeNumber <= 100) {
+      if (!canonicalStoreData.has(storeNumber)) {
+        const geo = CITY_COORDINATES[city] || { lat: 12.9716, lng: 77.5946, defaultState: state || "Karnataka" };
+        canonicalStoreData.set(storeNumber, {
+          storeNumber,
+          name: `Zudio ${city} (Store #${storeNumber})`,
+          slug: `zudio-store-${storeNumber}`,
+          city,
+          state: geo.defaultState,
+          pincode: postalCode && postalCode.length >= 6 ? postalCode.substring(0, 6) : "560038",
+          address: `${address || "Commercial Main Road"}, ${city}, ${geo.defaultState}`,
+          latitude: geo.lat + (storeNumber % 10) * 0.005,
+          longitude: geo.lng + (storeNumber % 10) * 0.005,
+          phone: contact || "+91 80 4123 4567",
+          openingHours: hours || "10:00 AM - 10:00 PM",
+        });
+      }
     }
 
     // Deduplicate product by productId
@@ -257,54 +258,147 @@ export async function importDataset() {
     pEntry.totalQuantitySold += quantity;
   }
 
-  const createdStores: any[] = [];
-  const rawStoreList = Array.from(rawStores.values());
-  for (const storeData of rawStoreList) {
-    const storeRecord = await prisma.store.upsert({
-      where: { slug: storeData.slug },
+  // 4b. Upsert all 100 Canonical Stores
+  const canonicalStores: any[] = [];
+  const canonicalStoreMap = new Map<number, any>();
+
+  for (let num = 1; num <= 100; num++) {
+    const sData = canonicalStoreData.get(num) || {
+      storeNumber: num,
+      name: `Zudio Retail Store #${num}`,
+      slug: `zudio-store-${num}`,
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: "560038",
+      address: `Store #${num} Commercial Area, Bengaluru, Karnataka`,
+      latitude: 12.9716 + (num % 10) * 0.005,
+      longitude: 77.5946 + (num % 10) * 0.005,
+      phone: "+91 80 4123 4567",
+      openingHours: "10:00 AM - 10:00 PM",
+    };
+
+    const record = await prisma.store.upsert({
+      where: { slug: sData.slug },
       update: {
-        name: storeData.name,
-        address: storeData.address,
-        city: storeData.city,
-        state: storeData.state,
-        pincode: storeData.pincode,
-        latitude: storeData.latitude,
-        longitude: storeData.longitude,
-        phone: storeData.phone,
-        openingHours: storeData.openingHours,
+        name: sData.name,
+        address: sData.address,
+        city: sData.city,
+        state: sData.state,
+        pincode: sData.pincode,
+        latitude: sData.latitude,
+        longitude: sData.longitude,
+        phone: sData.phone,
+        openingHours: sData.openingHours,
         isActive: true,
       },
       create: {
-        name: storeData.name,
-        slug: storeData.slug,
-        address: storeData.address,
-        city: storeData.city,
-        state: storeData.state,
-        pincode: storeData.pincode,
-        latitude: storeData.latitude,
-        longitude: storeData.longitude,
-        phone: storeData.phone,
-        openingHours: storeData.openingHours,
+        name: sData.name,
+        slug: sData.slug,
+        address: sData.address,
+        city: sData.city,
+        state: sData.state,
+        pincode: sData.pincode,
+        latitude: sData.latitude,
+        longitude: sData.longitude,
+        phone: sData.phone,
+        openingHours: sData.openingHours,
         isActive: true,
       },
     });
-    createdStores.push(storeRecord);
+
+    canonicalStores.push(record);
+    canonicalStoreMap.set(num, record);
   }
-  console.log(`✅ Upserted ${createdStores.length} Retail Stores across ${Object.keys(CITY_COORDINATES).length} cities.`);
+  console.log(`✅ Upserted exactly ${canonicalStores.length} Canonical Retail Stores (Store #1..#100).`);
+
+  // 4c. Safe Reconcile of any Old Non-Canonical Store Duplicates
+  console.log("\n🔄 Checking for legacy duplicate store records to reconcile...");
+  const allExistingStores = await prisma.store.findMany({
+    select: { id: true, slug: true },
+  });
+
+  const canonicalSlugs = new Set(canonicalStores.map((s) => s.slug));
+  const legacyStores = allExistingStores.filter((s) => !canonicalSlugs.has(s.slug));
+
+  if (legacyStores.length > 0) {
+    console.log(`  Found ${legacyStores.length} legacy duplicate store records to reconcile.`);
+
+    for (const legStore of legacyStores) {
+      // Extract store number from slug (e.g. "zudio-jalna-store-30" -> 30)
+      const match = legStore.slug.match(/-store-(\d+)$/);
+      const storeNum = match ? parseInt(match[1], 10) : 1;
+      const targetStore = canonicalStoreMap.get(storeNum) || canonicalStores[0];
+
+      if (targetStore && targetStore.id !== legStore.id) {
+        // Re-link inventory
+        const legacyInventories = await prisma.inventory.findMany({
+          where: { storeId: legStore.id },
+        });
+
+        for (const inv of legacyInventories) {
+          await prisma.inventory.upsert({
+            where: {
+              storeId_variantId: {
+                storeId: targetStore.id,
+                variantId: inv.variantId,
+              },
+            },
+            update: {
+              quantity: inv.quantity,
+              reservedQuantity: inv.reservedQuantity,
+            },
+            create: {
+              storeId: targetStore.id,
+              variantId: inv.variantId,
+              quantity: inv.quantity,
+              reservedQuantity: inv.reservedQuantity,
+            },
+          });
+        }
+
+        // Remove old inventories pointing to legacy store ID
+        await prisma.inventory.deleteMany({
+          where: { storeId: legStore.id },
+        });
+
+        // Re-link orders if any
+        await prisma.order.updateMany({
+          where: { storeId: legStore.id },
+          data: { storeId: targetStore.id },
+        });
+
+        // Re-link reservations if any
+        await prisma.reservation.updateMany({
+          where: { storeId: legStore.id },
+          data: { storeId: targetStore.id },
+        });
+
+        // Re-link staff users if any
+        await prisma.user.updateMany({
+          where: { storeId: legStore.id },
+          data: { storeId: targetStore.id },
+        });
+
+        // Now safely delete the orphaned legacy store
+        await prisma.store.delete({
+          where: { id: legStore.id },
+        });
+      }
+    }
+    console.log(`✅ Safely reconciled all legacy duplicate stores.`);
+  }
 
   // 5. Parse & Upsert Products and Multi-Variant Catalog
   console.log(`\n👗 Processing ${rawProducts.size} Unique Products from Dataset...`);
   let totalVariantsCreated = 0;
   let totalInventoryCreated = 0;
 
-  // We batch products to ensure fast and deterministic execution
   const productEntries = Array.from(rawProducts.entries());
 
   for (let idx = 0; idx < productEntries.length; idx++) {
     const [pid, pInfo] = productEntries[idx];
     const avgPrice = Math.round(pInfo.prices.reduce((a, b) => a + b, 0) / pInfo.prices.length);
 
-    // Map to category
     let targetCatSlug = pInfo.category.toLowerCase();
     if (pInfo.clothingType === "Shoes") {
       targetCatSlug = "footwear";
@@ -355,7 +449,7 @@ export async function importDataset() {
       });
     }
 
-    // Determine relevant sizes for this clothing type
+    // Sizes
     let relevantSizeNames: string[] = [];
     if (pInfo.clothingType === "Shoes") {
       relevantSizeNames = ["UK 7", "UK 8", "UK 9", "UK 10"];
@@ -365,7 +459,6 @@ export async function importDataset() {
       relevantSizeNames = ["S", "M", "L", "XL"];
     }
 
-    // Select 2 colors per product
     const selectedColors = [colorDefs[idx % colorDefs.length], colorDefs[(idx + 2) % colorDefs.length]];
 
     for (const col of selectedColors) {
@@ -397,13 +490,13 @@ export async function importDataset() {
         });
         totalVariantsCreated++;
 
-        // Distribute stock across top 10 flagship stores to maintain lightning-fast performance and full coverage
-        const sampleStores = createdStores.slice(0, 10);
+        // Distribute stock across top 10 canonical stores
+        const sampleStores = canonicalStores.slice(0, 10);
         for (let sIdx = 0; sIdx < sampleStores.length; sIdx++) {
           const store = sampleStores[sIdx];
           const seedNum = (sIdx + totalVariantsCreated * 3) % 9;
           const qty = seedNum + 4; // 4 to 12 in stock
-          const reserved = qty > 6 ? 1 : 0; // 0 or 1 reserved hold
+          const reserved = qty > 6 ? 1 : 0;
 
           await prisma.inventory.upsert({
             where: {
@@ -433,78 +526,74 @@ export async function importDataset() {
     }
   }
 
-  // 6. Seed Demo User Roles
-  console.log("\n👤 Verifying Demo User Accounts...");
-  const isProduction = process.env.NODE_ENV === "production";
-  const demoSeedEnabled = process.env.DEMO_SEED_ENABLED !== "false"; // Default true for concept pilot seed
+  // 6. Seed Exactly 3 Demo User Roles (Unconditionally)
+  console.log("\n👤 Seeding Exactly 3 Demo User Accounts...");
+  const adminPassword = process.env.DEMO_ADMIN_PASSWORD || "Admin@12345";
+  const staffPassword = process.env.DEMO_STAFF_PASSWORD || "Staff@12345";
+  const customerPassword = process.env.DEMO_CUSTOMER_PASSWORD || "Customer@12345";
 
-  if (demoSeedEnabled && !isProduction) {
-    const adminPassword = process.env.DEMO_ADMIN_PASSWORD || "Admin@12345";
-    const staffPassword = process.env.DEMO_STAFF_PASSWORD || "Staff@12345";
-    const customerPassword = process.env.DEMO_CUSTOMER_PASSWORD || "Customer@12345";
+  const adminHash = await bcrypt.hash(adminPassword, 10);
+  const staffHash = await bcrypt.hash(staffPassword, 10);
+  const customerHash = await bcrypt.hash(customerPassword, 10);
 
-    const adminHash = await bcrypt.hash(adminPassword, 10);
-    const staffHash = await bcrypt.hash(staffPassword, 10);
-    const customerHash = await bcrypt.hash(customerPassword, 10);
+  const blrStore = canonicalStores.find((s) => s.city === "Bengaluru") || canonicalStores[0];
 
-    const blrStore = createdStores.find((s) => s.city === "Bengaluru") || createdStores[0];
+  await prisma.user.upsert({
+    where: { email: "admin@zudio.demo" },
+    update: { passwordHash: adminHash, role: "ADMIN" },
+    create: {
+      name: "Demo Administrator",
+      email: "admin@zudio.demo",
+      passwordHash: adminHash,
+      role: "ADMIN",
+    },
+  });
 
-    await prisma.user.upsert({
-      where: { email: "admin@zudio.demo" },
-      update: { passwordHash: adminHash, role: "ADMIN" },
-      create: {
-        name: "Demo Administrator",
-        email: "admin@zudio.demo",
-        passwordHash: adminHash,
-        role: "ADMIN",
-      },
-    });
+  await prisma.user.upsert({
+    where: { email: "staff.blr@zudio.demo" },
+    update: { passwordHash: staffHash, role: "STORE_STAFF", storeId: blrStore.id },
+    create: {
+      name: "Bengaluru Store Staff",
+      email: "staff.blr@zudio.demo",
+      passwordHash: staffHash,
+      role: "STORE_STAFF",
+      storeId: blrStore.id,
+    },
+  });
 
-    await prisma.user.upsert({
-      where: { email: "staff.blr@zudio.demo" },
-      update: { passwordHash: staffHash, role: "STORE_STAFF", storeId: blrStore.id },
-      create: {
-        name: "Bengaluru Store Staff",
-        email: "staff.blr@zudio.demo",
-        passwordHash: staffHash,
-        role: "STORE_STAFF",
-        storeId: blrStore.id,
-      },
-    });
+  const demoCust = await prisma.user.upsert({
+    where: { email: "customer@zudio.demo" },
+    update: { passwordHash: customerHash, role: "CUSTOMER" },
+    create: {
+      name: "Demo Customer",
+      email: "customer@zudio.demo",
+      passwordHash: customerHash,
+      role: "CUSTOMER",
+    },
+  });
 
-    const demoCust = await prisma.user.upsert({
-      where: { email: "customer@zudio.demo" },
-      update: { passwordHash: customerHash, role: "CUSTOMER" },
-      create: {
-        name: "Demo Customer",
-        email: "customer@zudio.demo",
-        passwordHash: customerHash,
-        role: "CUSTOMER",
-      },
-    });
+  await prisma.cart.upsert({
+    where: { userId: demoCust.id },
+    update: {},
+    create: { userId: demoCust.id },
+  });
 
-    await prisma.cart.upsert({
-      where: { userId: demoCust.id },
-      update: {},
-      create: { userId: demoCust.id },
-    });
+  await prisma.wishlist.upsert({
+    where: { userId: demoCust.id },
+    update: {},
+    create: { userId: demoCust.id },
+  });
 
-    await prisma.wishlist.upsert({
-      where: { userId: demoCust.id },
-      update: {},
-      create: { userId: demoCust.id },
-    });
-
-    console.log("✅ Seeded/Updated 3 demo user roles (ADMIN, STORE_STAFF, CUSTOMER).");
-  }
+  console.log("✅ Successfully seeded 3 demo user roles (ADMIN, STORE_STAFF, CUSTOMER).");
 
   console.log("\n==========================================================");
-  console.log(" DATASET IMPORT COMPLETE! 🎉");
-  console.log(` • Categories: 4 (Men, Women, Kids, Footwear)`);
-  console.log(` • Retail Stores: ${createdStores.length}`);
+  console.log(" RECONCILIATION & DATASET IMPORT COMPLETE! 🎉");
+  console.log(` • Categories: 4`);
+  console.log(` • Canonical Retail Stores: ${canonicalStores.length}`);
   console.log(` • Products: ${rawProducts.size}`);
   console.log(` • Product Variants: ${totalVariantsCreated}`);
   console.log(` • Store Inventory Records: ${totalInventoryCreated}`);
+  console.log(` • Demo Users: 3`);
   console.log("==========================================================\n");
 }
 
