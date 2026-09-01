@@ -6,8 +6,14 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { APP_CONFIG } from "@/lib/constants";
 
+const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+const validAppUrl =
+  rawAppUrl && (rawAppUrl.startsWith("http://") || rawAppUrl.startsWith("https://"))
+    ? rawAppUrl
+    : "https://zudio.demo";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://zudio.demo"),
+  metadataBase: new URL(validAppUrl),
   title: {
     template: `%s | ${APP_CONFIG.name}`,
     default: `${APP_CONFIG.name} — Fashion for Everyday (Concept Pilot)`,

@@ -5,7 +5,11 @@ import { APP_CONFIG } from "@/lib/constants";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://zudio.demo";
+  const rawBase = process.env.NEXT_PUBLIC_APP_URL;
+  const baseUrl =
+    rawBase && (rawBase.startsWith("http://") || rawBase.startsWith("https://"))
+      ? rawBase
+      : "https://zudio.demo";
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [

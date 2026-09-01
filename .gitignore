@@ -33,3 +33,6 @@ next-env.d.ts
 # prisma generated engines
 /prisma/*.db
 /prisma/*.db-journal
+
+.vercel
+.env*
