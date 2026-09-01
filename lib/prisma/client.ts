@@ -4,11 +4,11 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Priority: Vercel PRISMA_DATABASE_URL -> POSTGRES_PRISMA_URL -> POSTGRES_URL -> DATABASE_URL
+// Priority: Vercel pooled POSTGRES_PRISMA_URL -> POSTGRES_URL -> PRISMA_DATABASE_URL -> DATABASE_URL
 const dbUrl =
-  process.env.PRISMA_DATABASE_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL ||
+  process.env.PRISMA_DATABASE_URL ||
   process.env.DATABASE_URL;
 
 // Ensure process.env.DATABASE_URL is populated for Prisma schema validation
@@ -26,8 +26,6 @@ export const prisma =
         : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
 
 export default prisma;
