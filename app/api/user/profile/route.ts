@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const user = await requireAuth();
 
-    const userRecord = await prisma.user.findUnique({
+    let userRecord = await prisma.user.findUnique({
       where: { id: user.id },
       select: {
         id: true,
@@ -36,8 +36,37 @@ export async function GET() {
       },
     });
 
+    if (!userRecord && user.email) {
+      userRecord = await prisma.user.findUnique({
+        where: { email: user.email.toLowerCase().trim() },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          role: true,
+          createdAt: true,
+          addresses: {
+            orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
+          },
+          wishlist: {
+            select: {
+              _count: {
+                select: { items: true },
+              },
+            },
+          },
+          _count: {
+            select: {
+              orders: true,
+            },
+          },
+        },
+      });
+    }
+
     if (!userRecord) {
-      return apiError("UNAUTHORIZED", "User profile not found.", 404);
+      return apiError("UNAUTHORIZED", "User profile not found. Please sign in again.", 404);
     }
 
     const payload = {

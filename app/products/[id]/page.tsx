@@ -69,6 +69,23 @@ export default function ProductDetailPage() {
         if (isMounted) setIsLoading(false);
       });
 
+    // Check existing wishlist state
+    fetch("/api/wishlist")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data.success && data.data?.items) {
+          const inWishlist = data.data.items.some(
+            (item: any) =>
+              item.product?.id === productIdOrSlug ||
+              item.product?.slug === productIdOrSlug ||
+              item.productId === productIdOrSlug
+          );
+          setIsWishlisted(inWishlist);
+        }
+      })
+      .catch(() => {});
+
     return () => {
       isMounted = false;
     };
@@ -102,7 +119,7 @@ export default function ProductDetailPage() {
       }
     } catch (err) {
       console.error("Add to cart error:", err);
-      alert("An unexpected error occurred.");
+      alert("Unable to add item to bag. Please try again.");
     } finally {
       setIsAddingToCart(false);
     }
@@ -110,20 +127,31 @@ export default function ProductDetailPage() {
 
   const handleToggleWishlist = async () => {
     if (!product) return;
+    const previousState = isWishlisted;
+    // Optimistic toggle
+    setIsWishlisted(!previousState);
+
     try {
       const res = await fetch("/api/wishlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: product.id }),
       });
+
       const data = await res.json();
+
       if (data.success) {
         setIsWishlisted(data.data.wishlisted);
       } else if (res.status === 401) {
+        setIsWishlisted(previousState);
         router.push(`/login?callbackUrl=/products/${product.slug}`);
+      } else {
+        setIsWishlisted(previousState);
+        alert(data.error?.message || "Failed to update wishlist.");
       }
     } catch (err) {
       console.error("Toggle wishlist error:", err);
+      setIsWishlisted(previousState);
     }
   };
 

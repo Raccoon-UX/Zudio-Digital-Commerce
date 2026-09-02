@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth.config";
+import { prisma } from "@/lib/prisma/client";
 import { AppError } from "@/lib/errors";
 
 export interface SessionUser {
@@ -10,12 +11,49 @@ export interface SessionUser {
 }
 
 /**
- * Get current authenticated user session on server
+ * Get current authenticated user session on server with resilient database ID resolution.
  */
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
-  return session.user as unknown as SessionUser;
+
+  const rawUser = session.user as any;
+  const rawId = rawUser.id || rawUser.sub;
+  const rawEmail = rawUser.email ? rawUser.email.toLowerCase().trim() : null;
+
+  // 1. If we have a user ID, verify it exists in Supabase
+  if (rawId) {
+    const dbUserById = await prisma.user.findUnique({
+      where: { id: rawId },
+      select: { id: true, email: true, name: true, role: true },
+    });
+    if (dbUserById) {
+      return {
+        id: dbUserById.id,
+        email: dbUserById.email,
+        name: dbUserById.name,
+        role: dbUserById.role as any,
+      };
+    }
+  }
+
+  // 2. Fallback: If ID is missing or was from a previous database instance, resolve via email
+  if (rawEmail) {
+    const dbUserByEmail = await prisma.user.findUnique({
+      where: { email: rawEmail },
+      select: { id: true, email: true, name: true, role: true },
+    });
+    if (dbUserByEmail) {
+      return {
+        id: dbUserByEmail.id,
+        email: dbUserByEmail.email,
+        name: dbUserByEmail.name,
+        role: dbUserByEmail.role as any,
+      };
+    }
+  }
+
+  return null;
 }
 
 /**
