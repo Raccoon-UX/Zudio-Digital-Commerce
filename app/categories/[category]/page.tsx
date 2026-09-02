@@ -1,19 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductFilters, FilterState } from "@/components/product/ProductFilters";
 import { ProductCardDTO } from "@/modules/products/types";
-import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function CategoryPage() {
   const params = useParams();
-  const categorySlug = params.category as string;
+  const categorySlug = (params.category as string)?.toLowerCase() || "men";
 
   const [products, setProducts] = useState<ProductCardDTO[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,78 +30,124 @@ export default function CategoryPage() {
     sort: "featured",
   });
 
-  const categoryTitles: Record<string, { title: string; subtitle: string }> = {
-    men: { title: "Men's Collection", subtitle: "Contemporary everyday tees, shirts, and bottom wear" },
-    women: { title: "Women's Collection", subtitle: "Trending dresses, tops, ethnic kurtas, and denims" },
-    kids: { title: "Kids' Collection", subtitle: "Playful, comfortable clothing sets for boys and girls" },
-    footwear: { title: "Footwear & Accessories", subtitle: "Everyday sneakers, sliders, and casual footwear" },
+  const categoryTitles: Record<string, { title: string; subtitle: string; bgImage: string }> = {
+    men: {
+      title: "Men's Collection",
+      subtitle: "Contemporary everyday tees, shirts, denims, and jackets crafted for daily comfort",
+      bgImage: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1400&auto=format&fit=crop&q=85",
+    },
+    women: {
+      title: "Women's Collection",
+      subtitle: "Trending dresses, tops, ethnic kurtas, and denims styled for everyday fashion",
+      bgImage: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&auto=format&fit=crop&q=85",
+    },
+    kids: {
+      title: "Kids' Collection",
+      subtitle: "Playful, durable clothing sets, graphic tees, and jackets for boys and girls",
+      bgImage: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1400&auto=format&fit=crop&q=85",
+    },
+    footwear: {
+      title: "Footwear & Sneakers",
+      subtitle: "Everyday sneakers, sliders, loafers, and flats offering exceptional value and style",
+      bgImage: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1400&auto=format&fit=crop&q=85",
+    },
   };
 
   const currentMeta = categoryTitles[categorySlug] || {
     title: `${categorySlug.toUpperCase()} Collection`,
     subtitle: "Everyday fashion curated for you.",
+    bgImage: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1400&auto=format&fit=crop&q=85",
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-    setError(null);
+  const fetchCategoryProducts = useCallback(
+    async (currentFilters: FilterState, currentPage: number) => {
+      setIsLoading(true);
+      setError(null);
 
-    const queryParams = new URLSearchParams();
-    queryParams.set("category", categorySlug);
-    if (filters.minPrice !== undefined) queryParams.set("minPrice", filters.minPrice.toString());
-    if (filters.maxPrice !== undefined) queryParams.set("maxPrice", filters.maxPrice.toString());
-    if (filters.sizes.length > 0) queryParams.set("sizes", filters.sizes.join(","));
-    if (filters.colors.length > 0) queryParams.set("colors", filters.colors.join(","));
-    if (filters.sort) queryParams.set("sort", filters.sort);
+      const queryParams = new URLSearchParams();
+      // Strictly enforce category query parameter
+      queryParams.set("category", categorySlug);
 
-    fetch(`/api/products?${queryParams.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!isMounted) return;
+      if (currentFilters.minPrice !== undefined) queryParams.set("minPrice", currentFilters.minPrice.toString());
+      if (currentFilters.maxPrice !== undefined) queryParams.set("maxPrice", currentFilters.maxPrice.toString());
+      if (currentFilters.sizes.length > 0) queryParams.set("sizes", currentFilters.sizes.join(","));
+      if (currentFilters.colors.length > 0) queryParams.set("colors", currentFilters.colors.join(","));
+      if (currentFilters.sort) queryParams.set("sort", currentFilters.sort);
+      queryParams.set("page", currentPage.toString());
+      queryParams.set("limit", "12");
+
+      try {
+        const res = await fetch(`/api/products?${queryParams.toString()}`);
+        const data = await res.json();
+
         if (data.success) {
           setProducts(data.data);
           setTotal(data.meta?.total || 0);
+          setTotalPages(data.meta?.totalPages || 1);
         } else {
           setError(data.error?.message || "Failed to load category products.");
         }
-      })
-      .catch((err) => {
-        if (!isMounted) return;
+      } catch (err) {
         console.error("Error fetching category products:", err);
-        setError("Unable to connect to database.");
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
+        setError("Unable to connect to product catalog database.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [categorySlug]
+  );
 
-    return () => {
-      isMounted = false;
-    };
-  }, [categorySlug, filters]);
+  useEffect(() => {
+    fetchCategoryProducts(filters, page);
+  }, [filters, page, fetchCategoryProducts]);
+
+  const handleFilterChange = (newFilters: FilterState) => {
+    // Keep category locked to the current route
+    setFilters({ ...newFilters, category: categorySlug });
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="py-8 bg-white min-h-screen">
       <Container size="xl">
-        {/* Category Hero Banner */}
-        <div className="bg-neutral-950 text-white p-8 sm:p-12 mb-8 border border-neutral-800">
-          <div className="text-xs text-neutral-400 uppercase tracking-widest mb-2">
-            <span>Home</span> / <span>Categories</span> /{" "}
-            <span className="text-white">{categorySlug}</span>
+        {/* Category Hero Editorial Banner */}
+        <div className="relative overflow-hidden bg-neutral-950 text-white p-8 sm:p-14 mb-8 border border-neutral-800 shadow-md">
+          <div className="absolute inset-0 z-0">
+            <img
+              src={currentMeta.bgImage}
+              alt={currentMeta.title}
+              className="h-full w-full object-cover object-center opacity-35 scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/40" />
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight">
-            {currentMeta.title}
-          </h1>
-          <p className="text-xs sm:text-sm text-neutral-300 mt-2 max-w-xl font-light">
-            {currentMeta.subtitle}
-          </p>
+
+          <div className="relative z-10 max-w-2xl">
+            <div className="text-[11px] text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+              <Link href="/" className="hover:text-white transition-colors">Home</Link>
+              <span>/</span>
+              <Link href="/products" className="hover:text-white transition-colors">Categories</Link>
+              <span>/</span>
+              <span className="text-white font-bold">{categorySlug}</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white drop-shadow-sm">
+              {currentMeta.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-neutral-200 mt-2.5 font-light leading-relaxed drop-shadow">
+              {currentMeta.subtitle}
+            </p>
+          </div>
         </div>
 
         {/* Main Grid + Filter Layout */}
         <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters
             filters={filters}
-            onFilterChange={setFilters}
+            onFilterChange={handleFilterChange}
             totalProducts={total}
           />
 
@@ -111,20 +161,51 @@ export default function CategoryPage() {
                 </div>
               </div>
             ) : (
-              <ProductGrid
-                products={products}
-                isLoading={isLoading}
-                onClearFilters={() =>
-                  setFilters({
-                    category: categorySlug,
-                    minPrice: undefined,
-                    maxPrice: undefined,
-                    sizes: [],
-                    colors: [],
-                    sort: "featured",
-                  })
-                }
-              />
+              <>
+                <ProductGrid
+                  products={products}
+                  isLoading={isLoading}
+                  onClearFilters={() =>
+                    handleFilterChange({
+                      category: categorySlug,
+                      minPrice: undefined,
+                      maxPrice: undefined,
+                      sizes: [],
+                      colors: [],
+                      sort: "featured",
+                    })
+                  }
+                />
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-neutral-200">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1}
+                      onClick={() => handlePageChange(page - 1)}
+                      className="text-xs font-bold uppercase tracking-wider"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages}
+                      onClick={() => handlePageChange(page + 1)}
+                      className="text-xs font-bold uppercase tracking-wider"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

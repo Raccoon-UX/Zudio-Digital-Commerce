@@ -15,20 +15,21 @@ interface ProductCardProps {
   index?: number;
 }
 
+const FALLBACK_IMG = "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80";
+
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistToggle, isWishlisted = false, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [wishlisted, setWishlisted] = useState(isWishlisted);
+  const [imgError, setImgError] = useState(false);
 
   const discountPercent = product.compareAtPrice && product.compareAtPrice > product.price
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : null;
 
-  // The dataset currently contains two curated images per clothing type. Alternate the
-  // initial frame so a catalog page does not look like the exact same tile repeated.
   const alternateFirst = useMemo(() => index % 2 === 1 && !!product.secondaryImageUrl, [index, product.secondaryImageUrl]);
   const primaryDisplay = alternateFirst ? product.secondaryImageUrl || product.imageUrl : product.imageUrl;
   const hoverDisplay = alternateFirst ? product.imageUrl : product.secondaryImageUrl || product.imageUrl;
-  const displayImage = isHovered ? hoverDisplay : primaryDisplay;
+  const activeImage = imgError ? FALLBACK_IMG : (isHovered ? hoverDisplay : primaryDisplay);
 
   const handleWishlistClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,16 +39,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
   };
 
   return (
-    <article className="group relative flex flex-col bg-white border border-neutral-200 hover:border-black hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300">
+    <article
+      className="group relative flex flex-col bg-white border border-neutral-200 hover:border-black hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <Link href={`/products/${product.slug}`} className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 block">
-        <Image src={displayImage} alt={product.name} fill sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,25vw" className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.035]" />
+        <Image
+          src={activeImage}
+          alt={product.name}
+          fill
+          sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,25vw"
+          className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.035]"
+          priority={index < 4}
+          onError={() => setImgError(true)}
+        />
 
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5 z-10">
           <div className="flex flex-col gap-1">
             {product.isNewArrival && <Badge variant="default" className="text-[9px] px-2 py-1 font-bold uppercase tracking-wider shadow-sm">New</Badge>}
             {discountPercent && discountPercent > 0 && <Badge variant="danger" className="text-[9px] px-2 py-1 font-bold shadow-sm">{discountPercent}% OFF</Badge>}
           </div>
-          <button type="button" onClick={handleWishlistClick} className="p-2 bg-white/95 backdrop-blur-sm text-neutral-700 hover:text-black shadow-sm rounded-full transition-transform hover:scale-105" aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}>
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className="p-2 bg-white/95 backdrop-blur-sm text-neutral-700 hover:text-black shadow-sm rounded-full transition-transform hover:scale-105"
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          >
             <Heart className={`h-4 w-4 ${wishlisted ? "fill-rose-600 text-rose-600" : ""}`} />
           </button>
         </div>
@@ -69,13 +87,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-sm font-extrabold text-black">{formatCurrency(product.price)}</span>
-              {product.compareAtPrice && product.compareAtPrice > product.price && <span className="text-[11px] text-neutral-400 line-through">{formatCurrency(product.compareAtPrice)}</span>}
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <span className="text-[11px] text-neutral-400 line-through">{formatCurrency(product.compareAtPrice)}</span>
+              )}
             </div>
             <p className="text-[9px] text-neutral-500 mt-1 uppercase tracking-wide">Inclusive of all taxes</p>
           </div>
           {product.availableColors.length > 0 && (
             <div className="flex items-center gap-1 pb-0.5" aria-label={`${product.availableColors.length} colours available`}>
-              {product.availableColors.slice(0, 4).map((c) => <span key={c.name} title={c.name} className="h-3 w-3 rounded-full border border-neutral-300 shadow-inner" style={{ backgroundColor: c.hexCode }} />)}
+              {product.availableColors.slice(0, 4).map((c) => (
+                <span key={c.name} title={c.name} className="h-3 w-3 rounded-full border border-neutral-300 shadow-inner" style={{ backgroundColor: c.hexCode }} />
+              ))}
               {product.availableColors.length > 4 && <span className="text-[9px] text-neutral-400">+{product.availableColors.length - 4}</span>}
             </div>
           )}

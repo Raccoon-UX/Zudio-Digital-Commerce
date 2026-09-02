@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { APP_CONFIG, FOOTER_LINKS } from "@/lib/constants";
 import { MapPin, ShieldCheck, RefreshCw, Truck } from "lucide-react";
+import { ZudioLogo } from "./ZudioLogo";
 
 export const Footer: React.FC = () => {
   return (
@@ -68,11 +69,9 @@ export const Footer: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             {/* Brand column */}
             <div className="md:col-span-4 space-y-4">
-              <Link href="/" className="inline-block">
-                <span className="text-3xl font-black tracking-tighter uppercase text-white">
-                  ZUDIO
-                </span>
-                <span className="ml-2 text-[10px] tracking-widest uppercase bg-neutral-800 text-neutral-300 px-1.5 py-0.5 border border-neutral-700">
+              <Link href="/" className="inline-flex items-center gap-2">
+                <ZudioLogo variant="light" className="w-[110px] h-auto" />
+                <span className="text-[10px] tracking-widest uppercase bg-neutral-800 text-neutral-300 px-1.5 py-0.5 border border-neutral-700">
                   PILOT
                 </span>
               </Link>

@@ -41,10 +41,11 @@ export async function getProducts(
 
     // Category Filter (support parent category or subcategory slug)
     if (category && category !== "all") {
+      const cleanCat = category.trim().toLowerCase();
       where.category = {
         OR: [
-          { slug: category },
-          { parent: { slug: category } },
+          { slug: { equals: cleanCat, mode: "insensitive" } },
+          { parent: { slug: { equals: cleanCat, mode: "insensitive" } } },
         ],
       };
     }
@@ -147,13 +148,10 @@ export async function getProducts(
           ["Dresses", "Tops", "Hoodies", "T-shirts", "Shirts", "Shoes", "Sweaters", "Pants", "Jackets", "Jeans", "Skirts"].includes(w)
         ) || p.category.name;
 
-      const curated = getCuratedFashionImages(p.category.name, clothingType, p.id);
+      const curated = getCuratedFashionImages(p.category.name, clothingType, p.slug || p.id);
 
-      const primaryImg = p.images.find((img) => img.isPrimary) || p.images[0];
-      const secondaryImg = p.images.find((img) => !img.isPrimary && img.id !== primaryImg?.id) || null;
-
-      const finalPrimaryUrl = primaryImg?.url || curated.primary;
-      const finalSecondaryUrl = secondaryImg?.url || curated.secondary;
+      const finalPrimaryUrl = curated.primary;
+      const finalSecondaryUrl = curated.secondary;
 
       return {
         id: p.id,
@@ -265,6 +263,26 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
     const sortedSizes = Array.from(allSizesMap.values()).sort((a, b) => a.sortOrder - b.sortOrder);
     const colorsList = Array.from(allColorsMap.values());
 
+    const nameTokens = product.name.split(" ");
+    const clothingType =
+      nameTokens.find((w) =>
+        ["Dresses", "Tops", "Hoodies", "T-shirts", "Shirts", "Shoes", "Sweaters", "Pants", "Jackets", "Jeans", "Skirts"].includes(w)
+      ) || product.category.name;
+    const curated = getCuratedFashionImages(product.category.name, clothingType, product.id);
+
+    const mappedImages = product.images.length > 0
+      ? product.images.map((img, idx) => ({
+          id: img.id,
+          url: idx === 0 ? curated.primary : idx === 1 ? curated.secondary : img.url,
+          altText: img.altText,
+          isPrimary: img.isPrimary,
+          sortOrder: img.sortOrder,
+        }))
+      : [
+          { id: "img-1", url: curated.primary, altText: product.name, isPrimary: true, sortOrder: 0 },
+          { id: "img-2", url: curated.secondary, altText: `${product.name} Alternate View`, isPrimary: false, sortOrder: 1 },
+        ];
+
     return {
       id: product.id,
       name: product.name,
@@ -277,13 +295,7 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
       isFeatured: product.isFeatured,
       isNewArrival: product.isNewArrival,
       variants,
-      images: product.images.map((img) => ({
-        id: img.id,
-        url: img.url,
-        altText: img.altText,
-        isPrimary: img.isPrimary,
-        sortOrder: img.sortOrder,
-      })),
+      images: mappedImages,
       allSizes: sortedSizes,
       allColors: colorsList,
     };
