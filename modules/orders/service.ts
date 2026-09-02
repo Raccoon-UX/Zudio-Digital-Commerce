@@ -24,20 +24,26 @@ export async function validateCheckout(
     throw new AppError("Your shopping cart is empty.", "INVALID_REQUEST", 400);
   }
 
+  // Batch query all variants for cart items in a single roundtrip
+  const variantIds = cart.items.map((i) => i.variantId);
+  const variants = await prisma.productVariant.findMany({
+    where: { id: { in: variantIds } },
+    include: {
+      product: true,
+      size: true,
+      color: true,
+      inventories: true,
+    },
+  });
+
+  const variantMap = new Map(variants.map((v) => [v.id, v]));
+
   const outOfStockItems: string[] = [];
   const validatedItems = [];
   let subtotal = 0;
 
   for (const item of cart.items) {
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: item.variantId },
-      include: {
-        product: true,
-        size: true,
-        color: true,
-        inventories: true,
-      },
-    });
+    const variant = variantMap.get(item.variantId);
 
     if (!variant || !variant.isActive || !variant.product.isActive) {
       outOfStockItems.push(`${item.productName} (${item.size}/${item.color}) - Discontinued`);

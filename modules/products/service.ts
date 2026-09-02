@@ -103,16 +103,25 @@ export async function getProducts(
       prisma.product.count({ where }),
       prisma.product.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isNewArrival: true,
+          isFeatured: true,
           category: { select: { name: true, slug: true } },
           images: {
+            select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true },
             orderBy: { sortOrder: "asc" },
           },
           variants: {
             where: { isActive: true },
-            include: {
-              size: true,
-              color: true,
+            select: {
+              id: true,
+              price: true,
+              compareAtPrice: true,
+              size: { select: { name: true } },
+              color: { select: { name: true, hexCode: true } },
             },
           },
         },

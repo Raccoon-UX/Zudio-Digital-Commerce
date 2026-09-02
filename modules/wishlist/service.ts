@@ -19,24 +19,51 @@ export async function getOrCreateWishlist(userId: string) {
 
 export async function getUserWishlist(userId: string): Promise<WishlistDTO> {
   try {
-    const wishlist = await getOrCreateWishlist(userId);
-
-    const items = await prisma.wishlistItem.findMany({
-      where: { wishlistId: wishlist.id },
+    // Single-roundtrip query for wishlist and items
+    let wishlist = await prisma.wishlist.findUnique({
+      where: { userId },
       include: {
-        product: {
+        items: {
           include: {
-            category: { select: { name: true, slug: true } },
-            images: { orderBy: { sortOrder: "asc" } },
-            variants: {
-              where: { isActive: true },
-              include: { size: true, color: true },
+            product: {
+              include: {
+                category: { select: { name: true, slug: true } },
+                images: { orderBy: { sortOrder: "asc" } },
+                variants: {
+                  where: { isActive: true },
+                  include: { size: true, color: true },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!wishlist) {
+      wishlist = await prisma.wishlist.create({
+        data: { userId },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  category: { select: { name: true, slug: true } },
+                  images: { orderBy: { sortOrder: "asc" } },
+                  variants: {
+                    where: { isActive: true },
+                    include: { size: true, color: true },
+                  },
+                },
+              },
             },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+      });
+    }
+
+    const items = wishlist.items || [];
 
     const mappedItems = items.map((item) => {
       const p = item.product;

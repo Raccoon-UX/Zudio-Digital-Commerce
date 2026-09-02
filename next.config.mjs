@@ -2,6 +2,8 @@
 const nextConfig = {
   output: "standalone",
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400, // 24 hours caching
     remotePatterns: [
       {
         protocol: "https",
@@ -14,6 +16,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.brandfetch.io",
       },
     ],
   },

@@ -33,28 +33,59 @@ export async function getOrCreateCart(userId?: string | null, sessionToken?: str
 
 export async function getCart(userId?: string | null, sessionToken?: string | null): Promise<CartDTO> {
   try {
-    const cart = await getOrCreateCart(userId, sessionToken);
+    if (!userId && !sessionToken) {
+      throw new AppError("Either userId or sessionToken is required to resolve cart.", "INVALID_REQUEST", 400);
+    }
 
-    const cartItems = await prisma.cartItem.findMany({
-      where: { cartId: cart.id },
+    // Single-roundtrip query for cart and nested items
+    let cart = await prisma.cart.findUnique({
+      where: userId ? { userId } : { sessionToken: sessionToken || "" },
       include: {
-        variant: {
+        items: {
           include: {
-            product: {
+            variant: {
               include: {
-                images: { orderBy: { sortOrder: "asc" } },
+                product: {
+                  include: {
+                    images: { orderBy: { sortOrder: "asc" } },
+                  },
+                },
+                size: true,
+                color: true,
+                inventories: true,
               },
             },
-            size: true,
-            color: true,
-            inventories: true,
           },
+          orderBy: { createdAt: "asc" },
         },
       },
-      orderBy: { createdAt: "asc" },
     });
 
-    const items: CartItemDTO[] = cartItems.map((item) => {
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: userId ? { userId } : { sessionToken: sessionToken || "" },
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: {
+                    include: {
+                      images: { orderBy: { sortOrder: "asc" } },
+                    },
+                  },
+                  size: true,
+                  color: true,
+                  inventories: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    const items: CartItemDTO[] = (cart.items || []).map((item) => {
       const v = item.variant;
       const p = v.product;
       const unitPrice = Number(v.price);
