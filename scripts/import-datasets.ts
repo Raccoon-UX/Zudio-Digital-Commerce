@@ -390,8 +390,8 @@ export async function importDataset() {
 
   // 5. Parse & Upsert Products and Multi-Variant Catalog
   console.log(`\n👗 Processing ${rawProducts.size} Unique Products from Dataset...`);
-  let totalVariantsCreated = 0;
-  let totalInventoryCreated = 0;
+  const allVariantRows: { id: string; productId: string; sku: string; sizeId: string; colorId: string; price: number; compareAtPrice: number; isActive: boolean }[] = [];
+  const allImageRows: { productId: string; url: string; altText: string; isPrimary: boolean; sortOrder: number }[] = [];
 
   const productEntries = Array.from(rawProducts.entries());
 
@@ -436,16 +436,13 @@ export async function importDataset() {
 
     // Product Images
     const availableImages = CATEGORY_IMAGES[pInfo.clothingType] || CATEGORY_IMAGES["T-shirts"];
-    await prisma.productImage.deleteMany({ where: { productId: product.id } });
     for (let imgIdx = 0; imgIdx < availableImages.length; imgIdx++) {
-      await prisma.productImage.create({
-        data: {
-          productId: product.id,
-          url: availableImages[imgIdx],
-          altText: `${product.name} - View ${imgIdx + 1}`,
-          isPrimary: imgIdx === 0,
-          sortOrder: imgIdx,
-        },
+      allImageRows.push({
+        productId: product.id,
+        url: availableImages[imgIdx],
+        altText: `${product.name} - View ${imgIdx + 1}`,
+        isPrimary: imgIdx === 0,
+        sortOrder: imgIdx,
       });
     }
 
@@ -460,6 +457,7 @@ export async function importDataset() {
     }
 
     const selectedColors = [colorDefs[idx % colorDefs.length], colorDefs[(idx + 2) % colorDefs.length]];
+    const sampleStores = canonicalStores.slice(0, 19);
 
     for (const col of selectedColors) {
       const colorId = colorMap[col.name];
@@ -470,61 +468,87 @@ export async function importDataset() {
         const colCode = col.name.replace(/\s+/g, "").substring(0, 3).toUpperCase();
         const sizeCode = sName.replace(/\s+/g, "").toUpperCase();
         const sku = `ZUD-${pid}-${colCode}-${sizeCode}`;
+        const variantId = `var_${pid}_${colCode}_${sizeCode}`;
 
-        const variant = await prisma.productVariant.upsert({
-          where: { sku },
-          update: {
-            price: avgPrice,
-            compareAtPrice: Math.round(avgPrice * 1.3),
-            isActive: true,
-          },
-          create: {
-            productId: product.id,
-            sku,
-            sizeId,
-            colorId,
-            price: avgPrice,
-            compareAtPrice: Math.round(avgPrice * 1.3),
-            isActive: true,
-          },
+        allVariantRows.push({
+          id: variantId,
+          productId: product.id,
+          sku,
+          sizeId,
+          colorId,
+          price: avgPrice,
+          compareAtPrice: Math.round(avgPrice * 1.3),
+          isActive: true,
         });
-        totalVariantsCreated++;
-
-        // Distribute stock across top 10 canonical stores
-        const sampleStores = canonicalStores.slice(0, 10);
-        for (let sIdx = 0; sIdx < sampleStores.length; sIdx++) {
-          const store = sampleStores[sIdx];
-          const seedNum = (sIdx + totalVariantsCreated * 3) % 9;
-          const qty = seedNum + 4; // 4 to 12 in stock
-          const reserved = qty > 6 ? 1 : 0;
-
-          await prisma.inventory.upsert({
-            where: {
-              storeId_variantId: {
-                storeId: store.id,
-                variantId: variant.id,
-              },
-            },
-            update: {
-              quantity: qty,
-              reservedQuantity: reserved,
-            },
-            create: {
-              storeId: store.id,
-              variantId: variant.id,
-              quantity: qty,
-              reservedQuantity: reserved,
-            },
-          });
-          totalInventoryCreated++;
-        }
       }
     }
 
     if ((idx + 1) % 100 === 0 || idx === productEntries.length - 1) {
-      console.log(`  Processed ${idx + 1}/${productEntries.length} products... (${totalVariantsCreated} variants, ${totalInventoryCreated} inventory rows)`);
+      console.log(`  Processed ${idx + 1}/${productEntries.length} products... (${allVariantRows.length} variants staged)`);
     }
   }
+
+  console.log(`\n🖼️ Bulk-inserting ${allImageRows.length} Product Images...`);
+  await prisma.productImage.deleteMany({});
+  const IMAGE_CHUNK_SIZE = 1000;
+  for (let c = 0; c < allImageRows.length; c += IMAGE_CHUNK_SIZE) {
+    const chunk = allImageRows.slice(c, c + IMAGE_CHUNK_SIZE);
+    await prisma.productImage.createMany({
+      data: chunk,
+      skipDuplicates: true,
+    });
+  }
+
+  console.log(`\n🏷️ Bulk-inserting ${allVariantRows.length} Product Variants...`);
+  const VARIANT_CHUNK_SIZE = 1000;
+  for (let c = 0; c < allVariantRows.length; c += VARIANT_CHUNK_SIZE) {
+    const chunk = allVariantRows.slice(c, c + VARIANT_CHUNK_SIZE);
+    await prisma.productVariant.createMany({
+      data: chunk,
+      skipDuplicates: true,
+    });
+  }
+  const totalVariantsCreated = allVariantRows.length;
+
+  console.log("\n🔄 Resolving canonical Variant IDs for Inventory mapping...");
+  const dbVariants = await prisma.productVariant.findMany({ select: { id: true, sku: true } });
+  const skuToId = new Map<string, string>(dbVariants.map((v) => [v.sku, v.id]));
+
+  const sampleStores = canonicalStores.slice(0, 19);
+  const allInventoryRows: { storeId: string; variantId: string; quantity: number; reservedQuantity: number }[] = [];
+
+  for (let vIdx = 0; vIdx < allVariantRows.length; vIdx++) {
+    const v = allVariantRows[vIdx];
+    const realVariantId = skuToId.get(v.sku);
+    if (!realVariantId) continue;
+
+    for (let sIdx = 0; sIdx < sampleStores.length; sIdx++) {
+      const store = sampleStores[sIdx];
+      const seedNum = (sIdx + vIdx * 3) % 9;
+      const qty = seedNum + 4;
+      const reserved = qty > 6 ? 1 : 0;
+      allInventoryRows.push({
+        storeId: store.id,
+        variantId: realVariantId,
+        quantity: qty,
+        reservedQuantity: reserved,
+      });
+    }
+  }
+
+  console.log(`\n📦 Bulk-inserting ${allInventoryRows.length} Inventory Records across stocked stores...`);
+  const INVENTORY_CHUNK_SIZE = 2000;
+  for (let c = 0; c < allInventoryRows.length; c += INVENTORY_CHUNK_SIZE) {
+    const chunk = allInventoryRows.slice(c, c + INVENTORY_CHUNK_SIZE);
+    await prisma.inventory.createMany({
+      data: chunk,
+      skipDuplicates: true,
+    });
+    if ((c + chunk.length) % 20000 === 0 || c + chunk.length === allInventoryRows.length) {
+      console.log(`  Inserted ${c + chunk.length}/${allInventoryRows.length} inventory records...`);
+    }
+  }
+  const totalInventoryCreated = allInventoryRows.length;
 
   // 6. Seed Exactly 3 Demo User Roles (Unconditionally)
   console.log("\n👤 Seeding Exactly 3 Demo User Accounts...");

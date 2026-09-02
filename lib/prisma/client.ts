@@ -4,12 +4,12 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Priority: Vercel pooled POSTGRES_PRISMA_URL -> POSTGRES_URL -> PRISMA_DATABASE_URL -> DATABASE_URL
+// Priority: DATABASE_URL (Supabase Transaction Pooler) -> Vercel pooled POSTGRES_PRISMA_URL -> POSTGRES_URL -> PRISMA_DATABASE_URL
 const dbUrl =
+  process.env.DATABASE_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   process.env.POSTGRES_URL ||
-  process.env.PRISMA_DATABASE_URL ||
-  process.env.DATABASE_URL;
+  process.env.PRISMA_DATABASE_URL;
 
 // Ensure process.env.DATABASE_URL is populated for Prisma schema validation
 if (dbUrl && !process.env.DATABASE_URL) {
