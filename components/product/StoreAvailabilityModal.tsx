@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, MapPin, Search, Store as StoreIcon, Clock, Phone, AlertCircle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { StoreStockAvailabilityDTO } from "@/modules/stores/types";
 import { ReserveInStoreModal } from "@/components/store/ReserveInStoreModal";
 
@@ -82,38 +81,38 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-2xl bg-white border border-neutral-200 shadow-2xl z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95">
+        <div className="relative w-full max-w-2xl bg-stitch-surface-base border border-stitch-border rounded-sm shadow-2xl z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200 text-stitch-primary">
           {/* Header */}
-          <div className="p-6 border-b border-neutral-200">
+          <div className="p-6 border-b border-stitch-border">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-neutral-500 bg-neutral-100 px-2 py-0.5 border border-neutral-200 mb-1">
-                  <StoreIcon className="h-3 w-3" />
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-stitch-accent bg-stitch-surface-container px-2.5 py-0.5 rounded-sm border border-stitch-border mb-1.5">
+                  <MaterialIcon name="storefront" size="xs" />
                   <span>Physical Store Availability</span>
                 </div>
-                <h3 className="text-base font-black uppercase tracking-tight text-black">
+                <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-stitch-primary">
                   In-Store Stock & Reservations
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1 text-neutral-400 hover:text-black"
+                className="p-1 text-stitch-secondary-text hover:text-stitch-primary transition-colors"
               >
-                <X className="h-5 w-5" />
+                <MaterialIcon name="close" size="sm" />
               </button>
             </div>
 
-            <div className="mt-2 text-xs text-neutral-600">
+            <div className="mt-2 text-xs text-stitch-secondary-text">
               Checking stock for:{" "}
-              <strong className="text-black">{productName}</strong>
+              <strong className="text-stitch-primary font-bold">{productName}</strong>
               {sizeName && colorName && (
-                <span className="ml-1 text-neutral-500">
+                <span className="ml-1 text-stitch-secondary-text">
                   ({colorName} / Size: {sizeName})
                 </span>
               )}
@@ -126,31 +125,31 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                 placeholder="Search by city (e.g. Bengaluru, Mumbai, Delhi) or store name..."
                 value={searchCity}
                 onChange={(e) => setSearchCity(e.target.value)}
-                className="w-full bg-neutral-50 border border-neutral-300 py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+                className="w-full bg-stitch-surface-container/50 border border-stitch-border py-2 pl-9 pr-3 text-xs rounded-sm text-stitch-primary focus:outline-none focus:border-stitch-primary transition-colors"
               />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
+              <MaterialIcon name="search" size="sm" className="absolute left-3 top-2.5 text-stitch-secondary-text pointer-events-none" />
             </div>
           </div>
 
           {/* Store List Body */}
-          <div className="p-6 overflow-y-auto divide-y divide-neutral-100 space-y-4">
+          <div className="p-6 overflow-y-auto divide-y divide-stitch-border space-y-4">
             {isLoading ? (
               <div className="space-y-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="py-2 space-y-2">
-                    <Skeleton className="h-4 w-1/3" />
-                    <Skeleton className="h-3 w-2/3" />
-                    <Skeleton className="h-3 w-1/4" />
+                  <div key={i} className="py-2 space-y-2 animate-pulse">
+                    <div className="h-4 w-1/3 bg-stitch-surface-container rounded" />
+                    <div className="h-3 w-2/3 bg-stitch-surface-container rounded" />
+                    <div className="h-3 w-1/4 bg-stitch-surface-container rounded" />
                   </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
+              <div className="p-4 bg-stitch-surface-container border border-stitch-error/30 text-xs text-stitch-error flex items-center gap-2 rounded-sm">
+                <MaterialIcon name="error" size="sm" className="shrink-0" />
                 <span>{error}</span>
               </div>
             ) : filteredStores.length === 0 ? (
-              <div className="text-center py-8 text-neutral-500 text-xs">
+              <div className="text-center py-8 text-stitch-secondary-text text-xs">
                 No physical stores found matching "{searchCity}".
               </div>
             ) : (
@@ -161,11 +160,11 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-black">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
                         {store.storeName}
                       </h4>
                       {store.stockStatus === "IN_STOCK" && (
-                        <Badge variant="success" className="text-[9px]">
+                        <Badge variant="accent" className="text-[9px]">
                           In Stock ({store.availableQuantity} available)
                         </Badge>
                       )}
@@ -181,23 +180,23 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                       )}
                     </div>
 
-                    <p className="text-[11px] text-neutral-600 flex items-start gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-neutral-400 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-stitch-secondary-text flex items-start gap-1">
+                      <MaterialIcon name="location_on" size="xs" className="text-stitch-secondary-text shrink-0 mt-0.5" />
                       <span>
                         {store.address}, {store.city}
                       </span>
                     </p>
 
-                    <div className="flex items-center gap-4 text-[10px] text-neutral-500 pt-0.5">
+                    <div className="flex items-center gap-4 text-[10px] text-stitch-secondary-text pt-0.5">
                       {store.openingHours && (
                         <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                          <MaterialIcon name="schedule" size="xs" />
                           <span>{store.openingHours}</span>
                         </span>
                       )}
                       {store.phone && (
                         <span className="inline-flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
+                          <MaterialIcon name="call" size="xs" />
                           <span>{store.phone}</span>
                         </span>
                       )}
@@ -225,7 +224,7 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="p-4 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between text-[11px] text-neutral-500">
+          <div className="p-4 bg-stitch-surface-container/30 border-t border-stitch-border flex items-center justify-between text-[11px] text-stitch-secondary-text">
             <span>Hold window is strictly 2 hours from confirmation.</span>
             <Button variant="secondary" size="sm" onClick={onClose}>
               Close
@@ -251,3 +250,4 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
 };
 
 export default StoreAvailabilityModal;
+

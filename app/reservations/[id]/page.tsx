@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ReservationSlip } from "@/components/reservation/ReservationSlip";
 import { ReservationDTO } from "@/modules/reservations/types";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export default function ReservationDetailPage() {
   const params = useParams();
@@ -90,7 +90,7 @@ export default function ReservationDetailPage() {
     return (
       <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
         <Container size="sm" className="text-center">
-          <AlertCircle className="h-10 w-10 text-rose-600 mx-auto mb-3" />
+          <MaterialIcon name="error" size={40} className="text-rose-600 mx-auto mb-3" />
           <h2 className="text-xl font-bold uppercase text-black mb-2">Reservation Not Found</h2>
           <p className="text-xs text-neutral-500 mb-6">{error || "The requested reservation could not be retrieved."}</p>
           <Link href="/reservations">
@@ -110,10 +110,10 @@ export default function ReservationDetailPage() {
         <div className="mb-6 flex items-center justify-between">
           <Link
             href="/reservations"
-            className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-600 hover:text-black"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-600 hover:text-black transition-colors"
           >
-            <ArrowLeft className="h-3.5 w-3.5 mr-1" />
-            Back to Reservations
+            <MaterialIcon name="arrow_back" size={16} />
+            <span>Back to Reservations</span>
           </Link>
 
           <Link href="/products">

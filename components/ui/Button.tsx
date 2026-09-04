@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "link";
+  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost" | "danger" | "link";
   size?: "sm" | "md" | "lg" | "icon";
   isLoading?: boolean;
 }
@@ -22,24 +22,30 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none rounded-none text-sm tracking-wide uppercase";
+      "inline-flex items-center justify-center font-bold tracking-wider uppercase transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stitch-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none select-none rounded";
 
-    const variantStyles = {
-      primary: "bg-black text-white hover:bg-neutral-800 active:bg-neutral-900",
+    const variantStyles: Record<string, string> = {
+      primary:
+        "bg-stitch-primary text-white hover:bg-neutral-800 active:bg-black shadow-sm",
       secondary:
-        "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300",
+        "border border-stitch-primary bg-transparent text-stitch-primary hover:bg-stitch-muted active:bg-stitch-container",
+      accent:
+        "bg-stitch-accent text-white hover:bg-[#004b4c] active:bg-[#003c3d] shadow-sm",
       outline:
-        "border border-black bg-transparent text-black hover:bg-neutral-100 active:bg-neutral-200",
-      ghost: "bg-transparent text-neutral-700 hover:bg-neutral-100 hover:text-black",
-      danger: "bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800",
-      link: "text-black underline-offset-4 hover:underline p-0 h-auto font-normal normal-case",
+        "border border-stitch-border bg-white text-stitch-primary hover:border-stitch-primary hover:bg-stitch-muted active:bg-stitch-container",
+      ghost:
+        "bg-transparent text-neutral-700 hover:bg-stitch-muted hover:text-stitch-primary",
+      danger:
+        "bg-stitch-error text-white hover:bg-rose-700 active:bg-rose-800",
+      link:
+        "text-stitch-primary underline-offset-4 hover:underline p-0 h-auto font-normal normal-case",
     };
 
     const sizeStyles = {
-      sm: "h-9 px-3 text-xs",
-      md: "h-11 px-5 text-sm",
-      lg: "h-13 px-8 text-base",
-      icon: "h-10 w-10 p-0",
+      sm: "h-9 px-3.5 text-xs rounded",
+      md: "h-12 px-6 text-xs tracking-wider rounded", // ~48px height per Stitch spec
+      lg: "h-13 px-8 text-sm tracking-wider rounded",
+      icon: "h-11 w-11 p-0 rounded",
     };
 
     return (

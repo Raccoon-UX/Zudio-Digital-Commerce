@@ -21,6 +21,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "cdn.brandfetch.io",
       },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
   },
 };

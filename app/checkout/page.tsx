@@ -4,22 +4,13 @@ import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatCurrency } from "@/lib/utils";
-import {
-  MapPin,
-  Truck,
-  ShieldCheck,
-  CreditCard,
-  AlertCircle,
-  CheckCircle2,
-  Lock,
-  QrCode,
-  Store,
-} from "lucide-react";
 import { CheckoutValidationResultDTO } from "@/modules/orders/types";
 import { RazorpayOrderResponseDTO } from "@/modules/payments/types";
 import { RazorpayCheckoutModal } from "@/components/payment/RazorpayCheckoutModal";
@@ -46,6 +37,9 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isNewAddressForm, setIsNewAddressForm] = useState(false);
   const [paymentChoice, setPaymentChoice] = useState<"RAZORPAY" | "DEMO_QR">("RAZORPAY");
+
+  // Mobile order summary accordion toggle
+  const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
 
   // Address Form inputs
   const [fullName, setFullName] = useState("");
@@ -202,16 +196,20 @@ export default function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="py-12 bg-white min-h-screen">
+      <div className="py-8 sm:py-12 bg-stitch-surface-base min-h-screen">
         <Container size="xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="mb-6 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-9 w-64" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-6">
-              <Skeleton className="h-8 w-40" />
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-10 w-full rounded" />
+              <Skeleton className="h-48 w-full rounded-lg" />
+              <Skeleton className="h-64 w-full rounded-lg" />
             </div>
             <div className="lg:col-span-4">
-              <Skeleton className="h-80 w-full" />
+              <Skeleton className="h-96 w-full rounded-lg" />
             </div>
           </div>
         </Container>
@@ -221,15 +219,19 @@ export default function CheckoutPage() {
 
   if (error && !validation) {
     return (
-      <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
+      <div className="py-20 bg-stitch-surface-base min-h-[60vh] flex items-center justify-center">
         <Container size="sm" className="text-center">
-          <div className="p-4 bg-rose-50 border border-rose-200 inline-block rounded-full mb-4">
-            <AlertCircle className="h-8 w-8 text-rose-600" />
+          <div className="p-4 bg-stitch-surface-container border border-rose-200 inline-block rounded-full mb-4">
+            <MaterialIcon name="error" size="xl" className="text-stitch-error" />
           </div>
-          <h2 className="text-xl font-bold uppercase text-black mb-2">Checkout Error</h2>
-          <p className="text-xs text-neutral-500 mb-6">{error}</p>
+          <h2 className="text-2xl font-black uppercase tracking-tight text-stitch-primary mb-2">
+            Checkout Unavailable
+          </h2>
+          <p className="text-xs text-stitch-secondary-text mb-6 max-w-sm mx-auto">
+            {error}
+          </p>
           <Link href="/cart">
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="md" className="text-xs font-bold uppercase tracking-wider">
               Return to Bag
             </Button>
           </Link>
@@ -239,44 +241,134 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="py-10 bg-neutral-50 min-h-screen">
+    <div className="py-6 sm:py-10 bg-stitch-surface-base min-h-screen text-stitch-primary font-sans">
       <Container size="xl">
-        <div className="pb-6 mb-6 border-b border-neutral-200">
-          <div className="text-xs text-neutral-400 uppercase tracking-wider mb-1">
-            <span>Bag</span> / <span className="text-black">Checkout</span>
+        {/* Header & Breadcrumb */}
+        <div className="pb-5 mb-6 border-b border-stitch-border flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-stitch-secondary-text uppercase tracking-wider mb-1">
+              <Link href="/cart" className="hover:text-stitch-primary transition-colors">Bag</Link>
+              <span>/</span>
+              <span className="text-stitch-primary font-bold">Checkout</span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-stitch-primary">
+              Secure Checkout
+            </h1>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-black">
-            Secure Checkout
-          </h1>
+          <Link href="/cart" className="hidden sm:inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-stitch-secondary-text hover:text-stitch-primary transition-colors">
+            <MaterialIcon name="arrow_back" size="xs" />
+            <span>Return to Bag</span>
+          </Link>
+        </div>
+
+        {/* Stitch 4-Step Progress Stepper: CONTACT -> DELIVERY -> SHIPPING -> PAYMENT */}
+        <div className="mb-8 bg-stitch-surface-container/40 border border-stitch-border p-4 rounded-lg">
+          <div className="flex justify-between items-center text-[11px] font-bold uppercase tracking-wider mb-2">
+            <span className="text-stitch-primary flex items-center gap-1">
+              <span className="h-4 w-4 rounded-full bg-stitch-primary text-white text-[9px] flex items-center justify-center font-bold">1</span>
+              CONTACT
+            </span>
+            <span className="text-stitch-primary flex items-center gap-1">
+              <span className="h-4 w-4 rounded-full bg-stitch-primary text-white text-[9px] flex items-center justify-center font-bold">2</span>
+              DELIVERY
+            </span>
+            <span className="text-stitch-primary flex items-center gap-1">
+              <span className="h-4 w-4 rounded-full bg-stitch-primary text-white text-[9px] flex items-center justify-center font-bold">3</span>
+              SHIPPING
+            </span>
+            <span className="text-stitch-primary flex items-center gap-1">
+              <span className="h-4 w-4 rounded-full bg-stitch-primary text-white text-[9px] flex items-center justify-center font-bold">4</span>
+              PAYMENT
+            </span>
+          </div>
+          <div className="w-full bg-stitch-surface-container h-1.5 rounded-full overflow-hidden border border-stitch-border/50">
+            <div className="bg-stitch-primary h-full w-full rounded-full transition-all duration-500" />
+          </div>
+        </div>
+
+        {/* Mobile Collapsible Order Summary Accordion (Stitch Screen e88e6048ab8c4aa590d9bcdff15a2876) */}
+        <div className="lg:hidden mb-6">
+          <button
+            type="button"
+            onClick={() => setIsMobileSummaryOpen(!isMobileSummaryOpen)}
+            className="w-full bg-stitch-surface-container/60 border border-stitch-border rounded-lg p-4 flex justify-between items-center transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <MaterialIcon name="shopping_bag" size="sm" className="text-stitch-primary" />
+              <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
+                {isMobileSummaryOpen ? "Hide order summary" : "Show order summary"} ({validation?.itemCount})
+              </span>
+              <MaterialIcon
+                name="expand_more"
+                size="sm"
+                className={`text-stitch-secondary-text transition-transform duration-300 ${
+                  isMobileSummaryOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+            <span className="text-sm font-black text-stitch-primary">
+              {formatCurrency(validation?.total || 0)}
+            </span>
+          </button>
+
+          {isMobileSummaryOpen && (
+            <div className="mt-2 bg-stitch-surface-container/30 border border-stitch-border rounded-lg p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+              <div className="max-h-56 overflow-y-auto divide-y divide-stitch-border/60">
+                {validation?.items.map((item) => (
+                  <div key={item.variantId} className="py-2.5 first:pt-0 flex items-center justify-between text-xs">
+                    <div>
+                      <h4 className="font-bold uppercase text-stitch-primary line-clamp-1">{item.productName}</h4>
+                      <p className="text-[11px] text-stitch-secondary-text">Qty: {item.quantity} · {item.sizeName} / {item.colorName}</p>
+                    </div>
+                    <span className="font-black text-stitch-primary shrink-0">{formatCurrency(item.subtotal)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-stitch-border pt-3 space-y-1.5 text-xs text-stitch-secondary-text">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-stitch-primary">{formatCurrency(validation?.subtotal || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Standard Delivery</span>
+                  <span>{validation?.deliveryFee === 0 ? <strong className="text-stitch-accent uppercase">FREE</strong> : formatCurrency(validation?.deliveryFee || 0)}</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-stitch-border font-black text-stitch-primary text-sm">
+                  <span>Total</span>
+                  <span>{formatCurrency(validation?.total || 0)}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2.5 rounded-lg">
+            <MaterialIcon name="error" size="sm" className="text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Contact, Address, and Payment Selection */}
+          {/* Left Column: 4-Step Checkout Modules */}
           <div className="lg:col-span-8 space-y-6">
             {/* Step 1: Contact Information */}
-            <div className="bg-white border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div className="bg-stitch-surface-base border border-stitch-border p-5 sm:p-6 rounded-lg shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-stitch-border">
                 <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">
+                  <div className="h-6 w-6 rounded-full bg-stitch-primary text-white text-xs font-bold flex items-center justify-center">
                     1
                   </div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-black">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-stitch-primary">
                     Contact Information
                   </h3>
                 </div>
                 {!session?.user && (
-                  <span className="text-[11px] text-neutral-500">
+                  <span className="text-[11px] text-stitch-secondary-text">
                     Already have an account?{" "}
                     <Link
                       href="/login?callbackUrl=/checkout"
-                      className="font-bold text-black uppercase underline"
+                      className="font-bold text-stitch-primary uppercase underline"
                     >
                       Sign In
                     </Link>
@@ -285,19 +377,19 @@ export default function CheckoutPage() {
               </div>
 
               {session?.user ? (
-                <div className="flex items-center justify-between text-xs p-3 bg-neutral-50 border border-neutral-200">
+                <div className="flex items-center justify-between text-xs p-3.5 bg-stitch-surface-container/50 border border-stitch-border rounded">
                   <div>
-                    <span className="font-bold text-black">{session.user.name}</span>
-                    <p className="text-neutral-500">{session.user.email}</p>
+                    <span className="font-bold text-stitch-primary">{session.user.name}</span>
+                    <p className="text-stitch-secondary-text">{session.user.email}</p>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-[10px] font-bold">
                     Logged In
                   </Badge>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                   <div>
-                    <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                    <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                       Email Address (for order confirmation) *
                     </label>
                     <input
@@ -306,11 +398,11 @@ export default function CheckoutPage() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                      className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                    <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                       Contact Phone *
                     </label>
                     <input
@@ -319,7 +411,7 @@ export default function CheckoutPage() {
                       placeholder="+91 98765 43210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                      className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -327,13 +419,13 @@ export default function CheckoutPage() {
             </div>
 
             {/* Step 2: Delivery Address */}
-            <div className="bg-white border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div className="bg-stitch-surface-base border border-stitch-border p-5 sm:p-6 rounded-lg shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-stitch-border">
                 <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">
+                  <div className="h-6 w-6 rounded-full bg-stitch-primary text-white text-xs font-bold flex items-center justify-center">
                     2
                   </div>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-black">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-stitch-primary">
                     Delivery Address
                   </h3>
                 </div>
@@ -341,7 +433,7 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setIsNewAddressForm(!isNewAddressForm)}
-                    className="text-xs font-bold uppercase tracking-wider text-black underline flex items-center gap-1"
+                    className="text-xs font-bold uppercase tracking-wider text-stitch-primary underline flex items-center gap-1"
                   >
                     {isNewAddressForm ? "Select Saved Address" : "+ Use New Address"}
                   </button>
@@ -353,10 +445,10 @@ export default function CheckoutPage() {
                   {savedAddresses.map((addr) => (
                     <label
                       key={addr.id}
-                      className={`p-4 border block cursor-pointer transition-colors relative ${
+                      className={`p-4 border rounded block cursor-pointer transition-colors relative ${
                         selectedAddressId === addr.id
-                          ? "border-black bg-neutral-50"
-                          : "border-neutral-200 hover:border-neutral-400"
+                          ? "border-stitch-primary bg-stitch-surface-container/50"
+                          : "border-stitch-border hover:border-stitch-primary/50"
                       }`}
                     >
                       <div className="flex items-start justify-between">
@@ -366,25 +458,25 @@ export default function CheckoutPage() {
                             name="addressSelection"
                             checked={selectedAddressId === addr.id}
                             onChange={() => setSelectedAddressId(addr.id)}
-                            className="text-black focus:ring-black"
+                            className="text-stitch-primary focus:ring-stitch-primary"
                           />
-                          <span className="text-xs font-bold uppercase text-black">
+                          <span className="text-xs font-bold uppercase text-stitch-primary">
                             {addr.fullName}
                           </span>
                         </div>
                         {addr.isDefault && (
-                          <Badge variant="default" className="text-[8px]">
+                          <Badge variant="default" className="text-[8px] font-bold">
                             Default
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-neutral-600 mt-2 leading-relaxed pl-5">
+                      <p className="text-xs text-stitch-secondary-text mt-2 leading-relaxed pl-5">
                         {addr.addressLine1}
                         {addr.addressLine2 && `, ${addr.addressLine2}`}
                         <br />
                         {addr.city}, {addr.state} - {addr.pincode}
                         <br />
-                        <span className="text-neutral-500">Phone: {addr.phone}</span>
+                        <span className="text-stitch-primary font-medium">Phone: {addr.phone}</span>
                       </p>
                     </label>
                   ))}
@@ -393,95 +485,101 @@ export default function CheckoutPage() {
                 <div className="space-y-4 text-xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                      <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                         Recipient Full Name *
                       </label>
                       <input
                         type="text"
                         required
+                        placeholder="Full Name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                        className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                       />
                     </div>
                     {session?.user && (
                       <div>
-                        <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                        <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                           Phone Number *
                         </label>
                         <input
                           type="tel"
                           required
+                          placeholder="+91 98765 43210"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value)}
-                          className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                          className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                         />
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                    <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                       Street Address / House No. *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Flat, House No., Apartment, Building"
+                      placeholder="Flat, House No., Building, Street"
                       value={addressLine1}
                       onChange={(e) => setAddressLine1(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                      className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                    <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                       Apartment, suite, landmark (Optional)
                     </label>
                     <input
                       type="text"
+                      placeholder="Landmark or area"
                       value={addressLine2}
                       onChange={(e) => setAddressLine2(e.target.value)}
-                      className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                      className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                      <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                         City *
                       </label>
                       <input
                         type="text"
                         required
+                        placeholder="City"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                        className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                      <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                         State *
                       </label>
                       <input
                         type="text"
                         required
+                        placeholder="State"
                         value={state}
                         onChange={(e) => setState(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                        className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold uppercase tracking-wider text-black mb-1">
+                      <label className="block font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                         Pincode *
                       </label>
                       <input
                         type="text"
                         required
                         pattern="[0-9]{6}"
+                        placeholder="6-digit PIN"
                         value={pincode}
                         onChange={(e) => setPincode(e.target.value)}
-                        className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 focus:outline-none focus:border-black"
+                        className="w-full h-11 bg-stitch-surface-base border border-stitch-border rounded px-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                       />
                     </div>
                   </div>
@@ -489,13 +587,57 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Step 3: Payment Method Selection */}
-            <div className="bg-white border border-neutral-200 p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
-                <div className="h-6 w-6 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">
+            {/* Step 3: Shipping & Fulfillment */}
+            <div className="bg-stitch-surface-base border border-stitch-border p-5 sm:p-6 rounded-lg shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b border-stitch-border">
+                <div className="h-6 w-6 rounded-full bg-stitch-primary text-white text-xs font-bold flex items-center justify-center">
                   3
                 </div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-black">
+                <h3 className="text-xs font-black uppercase tracking-wider text-stitch-primary">
+                  Shipping & Fulfillment
+                </h3>
+              </div>
+
+              <div className="p-4 bg-stitch-surface-container/50 border border-stitch-border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <MaterialIcon name="local_shipping" size="md" className="text-stitch-accent" />
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
+                        Standard Delivery (3–5 Business Days)
+                      </h4>
+                      <p className="text-[11px] text-stitch-secondary-text">
+                        Free delivery on orders above ₹799 · Direct doorstep dispatch
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold uppercase text-stitch-primary">
+                    {validation?.deliveryFee === 0 ? (
+                      <strong className="text-stitch-accent">FREE</strong>
+                    ) : (
+                      formatCurrency(validation?.deliveryFee || 0)
+                    )}
+                  </span>
+                </div>
+
+                {validation?.allocatedStore && (
+                  <div className="pt-3 border-t border-stitch-border/60 flex items-center gap-2 text-[11px] text-stitch-secondary-text">
+                    <MaterialIcon name="storefront" size="xs" className="text-stitch-primary" />
+                    <span>
+                      Allocated Fulfillment Branch: <strong className="text-stitch-primary">{validation.allocatedStore.storeName}</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Step 4: Payment Experience */}
+            <div className="bg-stitch-surface-base border border-stitch-border p-5 sm:p-6 rounded-lg shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-3 border-b border-stitch-border">
+                <div className="h-6 w-6 rounded-full bg-stitch-primary text-white text-xs font-bold flex items-center justify-center">
+                  4
+                </div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-stitch-primary">
                   Select Payment Experience
                 </h3>
               </div>
@@ -503,10 +645,10 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Razorpay Gateway Option */}
                 <label
-                  className={`p-4 border block cursor-pointer transition-colors ${
+                  className={`p-4 border rounded block cursor-pointer transition-colors ${
                     paymentChoice === "RAZORPAY"
-                      ? "border-black bg-neutral-50"
-                      : "border-neutral-200 hover:border-neutral-400"
+                      ? "border-stitch-primary bg-stitch-surface-container/50"
+                      : "border-stitch-border hover:border-stitch-primary/50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -516,25 +658,25 @@ export default function CheckoutPage() {
                         name="paymentChoice"
                         checked={paymentChoice === "RAZORPAY"}
                         onChange={() => setPaymentChoice("RAZORPAY")}
-                        className="text-black focus:ring-black"
+                        className="text-stitch-primary focus:ring-stitch-primary"
                       />
-                      <span className="text-xs font-bold uppercase text-black">
+                      <span className="text-xs font-bold uppercase text-stitch-primary">
                         Razorpay Gateway
                       </span>
                     </div>
-                    <CreditCard className="h-4 w-4 text-black" />
+                    <MaterialIcon name="credit_card" size="sm" className="text-stitch-primary" />
                   </div>
-                  <p className="text-[11px] text-neutral-500 mt-2 pl-5">
+                  <p className="text-[11px] text-stitch-secondary-text mt-2 pl-5">
                     Cards, NetBanking, UPI, and Wallets with secure 256-bit encryption.
                   </p>
                 </label>
 
                 {/* Demo UPI / QR Option */}
                 <label
-                  className={`p-4 border block cursor-pointer transition-colors ${
+                  className={`p-4 border rounded block cursor-pointer transition-colors ${
                     paymentChoice === "DEMO_QR"
-                      ? "border-black bg-neutral-50"
-                      : "border-neutral-200 hover:border-neutral-400"
+                      ? "border-stitch-primary bg-stitch-surface-container/50"
+                      : "border-stitch-border hover:border-stitch-primary/50"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -544,64 +686,64 @@ export default function CheckoutPage() {
                         name="paymentChoice"
                         checked={paymentChoice === "DEMO_QR"}
                         onChange={() => setPaymentChoice("DEMO_QR")}
-                        className="text-black focus:ring-black"
+                        className="text-stitch-primary focus:ring-stitch-primary"
                       />
-                      <span className="text-xs font-bold uppercase text-black">
+                      <span className="text-xs font-bold uppercase text-stitch-primary">
                         Demo UPI / QR
                       </span>
                     </div>
-                    <QrCode className="h-4 w-4 text-black" />
+                    <MaterialIcon name="qr_code_2" size="sm" className="text-stitch-primary" />
                   </div>
-                  <p className="text-[11px] text-neutral-500 mt-2 pl-5">
+                  <p className="text-[11px] text-stitch-secondary-text mt-2 pl-5">
                     Visual QR prototype with server-side test verification.
                   </p>
                 </label>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-black mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-stitch-primary mb-1.5">
                   Delivery Notes / Instructions (Optional)
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Please ring doorbell"
+                  placeholder="e.g. Ring doorbell, leave with guard"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full bg-neutral-50 border border-neutral-300 py-2 px-3 text-xs focus:outline-none focus:border-black"
+                  className="w-full bg-stitch-surface-base border border-stitch-border rounded p-3 text-xs text-stitch-primary placeholder:text-stitch-secondary-text focus:outline-none focus:border-stitch-primary transition-colors"
                 />
               </div>
             </div>
           </div>
 
-          {/* Right Column: Order Review & Fulfillment Allocation */}
-          <div className="lg:col-span-4 bg-white border border-neutral-200 p-6 shadow-sm space-y-6 sticky top-28">
-            <div className="space-y-1 pb-3 border-b border-neutral-200">
-              <h3 className="text-sm font-black uppercase tracking-wider text-black">
-                Order Review ({validation?.itemCount})
+          {/* Right Column: Order Review & Sticky Summary (Desktop) */}
+          <div className="hidden lg:block lg:col-span-4 bg-stitch-surface-container/60 border border-stitch-border p-5 sm:p-6 rounded-lg space-y-6 sticky top-28">
+            <div className="space-y-1 pb-3 border-b border-stitch-border">
+              <h3 className="text-xs font-black uppercase tracking-wider text-stitch-primary">
+                Order Review ({validation?.itemCount} {validation?.itemCount === 1 ? "Item" : "Items"})
               </h3>
               {validation?.allocatedStore && (
-                <div className="flex items-center gap-1.5 text-[11px] text-neutral-600">
-                  <Store className="h-3.5 w-3.5 text-neutral-800" />
+                <div className="flex items-center gap-1.5 text-[11px] text-stitch-secondary-text pt-1">
+                  <MaterialIcon name="storefront" size="xs" className="text-stitch-primary" />
                   <span>
-                    Fulfillment Store: <strong className="text-black">{validation.allocatedStore.storeName}</strong>
+                    Fulfillment: <strong className="text-stitch-primary">{validation.allocatedStore.storeName}</strong>
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Items scroll */}
-            <div className="max-h-60 overflow-y-auto divide-y divide-neutral-100 space-y-3">
+            {/* Scrollable Items List */}
+            <div className="max-h-60 overflow-y-auto divide-y divide-stitch-border/60 space-y-3">
               {validation?.items.map((item) => (
                 <div key={item.variantId} className="pt-3 first:pt-0 flex items-center justify-between text-xs">
                   <div>
-                    <h4 className="font-bold uppercase text-black line-clamp-1">
+                    <h4 className="font-bold uppercase text-stitch-primary line-clamp-1">
                       {item.productName}
                     </h4>
-                    <p className="text-[11px] text-neutral-500">
+                    <p className="text-[11px] text-stitch-secondary-text">
                       Qty: {item.quantity} · {item.sizeName} / {item.colorName}
                     </p>
                   </div>
-                  <span className="font-black text-black shrink-0">
+                  <span className="font-black text-stitch-primary shrink-0">
                     {formatCurrency(item.subtotal)}
                   </span>
                 </div>
@@ -609,33 +751,37 @@ export default function CheckoutPage() {
             </div>
 
             {/* Price Calculations */}
-            <div className="border-t border-neutral-200 pt-4 space-y-2 text-xs">
-              <div className="flex justify-between text-neutral-600">
+            <div className="border-t border-stitch-border pt-4 space-y-2.5 text-xs">
+              <div className="flex justify-between text-stitch-secondary-text">
                 <span>Subtotal</span>
-                <span className="font-bold text-black">
+                <span className="font-bold text-stitch-primary">
                   {formatCurrency(validation?.subtotal || 0)}
                 </span>
               </div>
 
-              <div className="flex justify-between text-neutral-600">
-                <span>Delivery Charge</span>
+              <div className="flex justify-between text-stitch-secondary-text">
+                <span>Standard Delivery</span>
                 <span>
                   {validation?.deliveryFee === 0 ? (
-                    <strong className="text-emerald-700 uppercase">FREE</strong>
+                    <strong className="text-stitch-accent font-bold uppercase">FREE</strong>
                   ) : (
                     formatCurrency(validation?.deliveryFee || 0)
                   )}
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-neutral-200 flex justify-between items-baseline">
-                <span className="text-sm font-black uppercase text-black">
+              <div className="pt-3 border-t border-stitch-border flex justify-between items-baseline">
+                <span className="text-sm font-black uppercase text-stitch-primary">
                   Total Amount
                 </span>
-                <span className="text-xl font-black text-black">
+                <span className="text-xl font-black text-stitch-primary">
                   {formatCurrency(validation?.total || 0)}
                 </span>
               </div>
+
+              <p className="text-[11px] text-stitch-secondary-text text-right">
+                Inclusive of all taxes
+              </p>
             </div>
 
             <Button
@@ -643,21 +789,35 @@ export default function CheckoutPage() {
               variant="primary"
               size="lg"
               isLoading={isPlacingOrder}
-              className="w-full text-xs tracking-wider"
+              className="w-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
             >
-              <Lock className="h-4 w-4 mr-2" />
-              Pay {formatCurrency(validation?.total || 0)}
+              <MaterialIcon name="lock" size="xs" />
+              <span>Pay {formatCurrency(validation?.total || 0)}</span>
             </Button>
 
-            <div className="p-3 bg-neutral-50 border border-neutral-200 text-[11px] text-neutral-500 space-y-1">
-              <div className="flex items-center gap-1.5 text-neutral-800 font-semibold">
-                <ShieldCheck className="h-3.5 w-3.5 text-black shrink-0" />
-                <span>Verified Server Verification</span>
+            <div className="p-3.5 bg-white border border-stitch-border text-[11px] text-stitch-secondary-text rounded space-y-1">
+              <div className="flex items-center gap-1.5 text-stitch-primary font-bold">
+                <MaterialIcon name="verified" size="xs" className="text-stitch-accent" />
+                <span>Verified Server Commitment</span>
               </div>
               <p>
                 Store inventory is committed atomically upon cryptographic payment verification.
               </p>
             </div>
+          </div>
+
+          {/* Mobile Bottom Submit Bar */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stitch-border p-4 shadow-lg pb-[calc(16px+env(safe-area-inset-bottom))]">
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              isLoading={isPlacingOrder}
+              className="w-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+            >
+              <MaterialIcon name="lock" size="xs" />
+              <span>Pay {formatCurrency(validation?.total || 0)}</span>
+            </Button>
           </div>
         </form>
       </Container>

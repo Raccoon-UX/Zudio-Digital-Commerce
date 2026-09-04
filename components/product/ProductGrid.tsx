@@ -1,7 +1,6 @@
 import React from "react";
 import { ProductCardDTO } from "@/modules/products/types";
 import { ProductCard } from "./ProductCard";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface ProductGridProps {
@@ -21,13 +20,13 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex flex-col space-y-2.5 border border-neutral-200 p-2.5 bg-white">
-            <Skeleton className="aspect-[3/4] w-full bg-neutral-100" />
-            <Skeleton className="h-3 w-1/3 bg-neutral-100" />
-            <Skeleton className="h-4 w-3/4 bg-neutral-100" />
-            <Skeleton className="h-4 w-1/2 bg-neutral-100" />
+          <div key={i} className="flex flex-col space-y-2.5 border border-stitch-border p-2 bg-stitch-surface-base rounded-sm animate-pulse">
+            <div className="aspect-[3/4] w-full bg-stitch-surface-container rounded-sm" />
+            <div className="h-3 w-1/3 bg-stitch-surface-container rounded-sm" />
+            <div className="h-4 w-3/4 bg-stitch-surface-container rounded-sm" />
+            <div className="h-4 w-1/2 bg-stitch-surface-container rounded-sm" />
           </div>
         ))}
       </div>
@@ -49,7 +48,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
       {products.map((product, index) => (
         <ProductCard key={product.id} product={product} index={index} />
       ))}
@@ -58,3 +57,4 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 };
 
 export default ProductGrid;
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { SlidersHorizontal, X, RotateCcw } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +40,13 @@ const PRICE_RANGES = [
   { label: "₹1,200+", min: 1200, max: undefined },
 ];
 
+const SORT_OPTIONS: { label: string; value: FilterState["sort"] }[] = [
+  { label: "Featured", value: "featured" },
+  { label: "New Arrivals", value: "newest" },
+  { label: "Price: Low to High", value: "price_asc" },
+  { label: "Price: High to Low", value: "price_desc" },
+];
+
 export const ProductFilters: React.FC<ProductFiltersProps> = ({
   filters,
   onFilterChange,
@@ -52,7 +59,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   ],
   totalProducts,
 }) => {
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
 
   const activeFilterCount =
     (filters.category && filters.category !== "all" ? 1 : 0) +
@@ -89,11 +97,12 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     onFilterChange({ ...filters, colors: newColors });
   };
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSortChange = (sortValue: FilterState["sort"]) => {
     onFilterChange({
       ...filters,
-      sort: e.target.value as FilterState["sort"],
+      sort: sortValue,
     });
+    setIsSortModalOpen(false);
   };
 
   const handleReset = () => {
@@ -110,25 +119,25 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   const filterContent = (
     <div className="space-y-6 text-xs uppercase tracking-wide">
       {/* Active count & Reset */}
-      <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
-        <span className="font-bold text-neutral-900">
+      <div className="flex items-center justify-between pb-3 border-b border-stitch-border">
+        <span className="font-bold text-stitch-primary">
           Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
         </span>
         {activeFilterCount > 0 && (
           <button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-1 text-neutral-500 hover:text-black normal-case font-medium"
+            className="inline-flex items-center gap-1 text-stitch-secondary-text hover:text-stitch-primary normal-case font-semibold transition-colors"
           >
-            <RotateCcw className="h-3 w-3" />
-            <span>Reset</span>
+            <MaterialIcon name="refresh" size="xs" />
+            <span>Reset All</span>
           </button>
         )}
       </div>
 
       {/* Categories */}
-      <div className="space-y-2">
-        <h4 className="font-bold text-black">Categories</h4>
+      <div className="space-y-2.5">
+        <h4 className="font-bold text-stitch-primary tracking-wider">Category</h4>
         <div className="flex flex-wrap gap-1.5">
           {categories.map((cat) => {
             const isSelected =
@@ -140,10 +149,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 type="button"
                 onClick={() => handleCategorySelect(cat.slug)}
                 className={cn(
-                  "px-2.5 py-1 text-[11px] border transition-colors",
+                  "px-3 py-1.5 text-[11px] font-semibold tracking-wide rounded-sm border transition-colors",
                   isSelected
-                    ? "bg-black text-white border-black"
-                    : "bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-black"
+                    ? "bg-stitch-primary text-white border-stitch-primary"
+                    : "bg-stitch-surface-container/50 text-stitch-primary border-stitch-border hover:border-stitch-primary"
                 )}
               >
                 {cat.name}
@@ -154,8 +163,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       </div>
 
       {/* Price Ranges */}
-      <div className="space-y-2">
-        <h4 className="font-bold text-black">Price</h4>
+      <div className="space-y-2.5">
+        <h4 className="font-bold text-stitch-primary tracking-wider">Price</h4>
         <div className="space-y-1">
           {PRICE_RANGES.map((range) => {
             const isSelected =
@@ -166,13 +175,14 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 type="button"
                 onClick={() => handlePriceSelect(range.min, range.max)}
                 className={cn(
-                  "block w-full text-left py-1 px-2 text-[11px] transition-colors",
+                  "flex items-center justify-between w-full text-left py-1.5 px-2.5 rounded-sm text-[11px] transition-colors",
                   isSelected
-                    ? "font-bold text-black bg-neutral-100"
-                    : "text-neutral-600 hover:text-black"
+                    ? "font-bold text-stitch-primary bg-stitch-surface-container"
+                    : "text-stitch-secondary-text hover:text-stitch-primary hover:bg-stitch-surface-container/40"
                 )}
               >
-                {range.label}
+                <span>{range.label}</span>
+                {isSelected && <MaterialIcon name="check" size="xs" className="text-stitch-accent" />}
               </button>
             );
           })}
@@ -180,9 +190,9 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       </div>
 
       {/* Sizes */}
-      <div className="space-y-2">
-        <h4 className="font-bold text-black">Size</h4>
-        <div className="grid grid-cols-4 gap-1">
+      <div className="space-y-2.5">
+        <h4 className="font-bold text-stitch-primary tracking-wider">Size</h4>
+        <div className="grid grid-cols-4 gap-1.5">
           {AVAILABLE_SIZES.map((size) => {
             const isSelected = filters.sizes.includes(size);
             return (
@@ -191,10 +201,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 type="button"
                 onClick={() => handleSizeToggle(size)}
                 className={cn(
-                  "py-1.5 text-center text-[10px] font-bold border transition-colors",
+                  "py-2 text-center text-[10px] font-bold rounded-sm border transition-colors",
                   isSelected
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-neutral-800 border-neutral-300 hover:border-black"
+                    ? "bg-stitch-primary text-white border-stitch-primary"
+                    : "bg-stitch-surface-base text-stitch-primary border-stitch-border hover:border-stitch-primary"
                 )}
               >
                 {size}
@@ -205,8 +215,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       </div>
 
       {/* Colors */}
-      <div className="space-y-2">
-        <h4 className="font-bold text-black">Color</h4>
+      <div className="space-y-2.5">
+        <h4 className="font-bold text-stitch-primary tracking-wider">Color</h4>
         <div className="flex flex-wrap gap-2">
           {AVAILABLE_COLORS.map((c) => {
             const isSelected = filters.colors.includes(c.name);
@@ -217,19 +227,18 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 onClick={() => handleColorToggle(c.name)}
                 title={c.name}
                 className={cn(
-                  "h-6 w-6 rounded-full border flex items-center justify-center transition-transform",
+                  "h-7 w-7 rounded-full border flex items-center justify-center transition-transform",
                   isSelected
-                    ? "ring-2 ring-black scale-110 border-white"
-                    : "border-neutral-300 hover:scale-105"
+                    ? "ring-2 ring-stitch-primary scale-110 border-white"
+                    : "border-stitch-border hover:scale-105"
                 )}
                 style={{ backgroundColor: c.hex }}
               >
                 {isSelected && (
-                  <span
-                    className={cn(
-                      "h-1.5 w-1.5 rounded-full",
-                      c.hex === "#FFFFFF" ? "bg-black" : "bg-white"
-                    )}
+                  <MaterialIcon
+                    name="check"
+                    size="xs"
+                    className={c.hex === "#FFFFFF" ? "text-stitch-primary" : "text-white"}
                   />
                 )}
               </button>
@@ -242,90 +251,199 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 
   return (
     <>
-      {/* Top Bar on Mobile & Desktop: Count, Filter Trigger, Sort Dropdown */}
-      <div className="flex items-center justify-between py-3 mb-4 border-b border-neutral-200 gap-4">
-        {/* Mobile filter button */}
+      {/* 1. Mobile Sticky Filter/Sort Bar (Exact Stitch PLP layout) */}
+      <div className="lg:hidden sticky top-16 z-30 bg-stitch-surface-base border-y border-stitch-border flex items-center mb-4">
         <button
           type="button"
-          onClick={() => setIsMobileOpen(true)}
-          className="lg:hidden inline-flex items-center gap-1.5 px-3 py-1.5 border border-black text-xs font-bold uppercase"
+          onClick={() => setIsSortModalOpen(true)}
+          className="flex-1 py-3 flex items-center justify-center gap-2 text-stitch-primary font-bold text-xs uppercase tracking-wider border-r border-stitch-border hover:bg-stitch-surface-container/30 active:bg-stitch-surface-container transition-colors"
         >
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span>Filters</span>
+          <MaterialIcon name="sort" size="sm" />
+          <span>Sort</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsFilterDrawerOpen(true)}
+          className="flex-1 py-3 flex items-center justify-center gap-2 text-stitch-primary font-bold text-xs uppercase tracking-wider hover:bg-stitch-surface-container/30 active:bg-stitch-surface-container transition-colors"
+        >
+          <MaterialIcon name="tune" size="sm" />
+          <span>Filter</span>
           {activeFilterCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.2 bg-black text-white text-[10px]">
+            <span className="px-1.5 py-0.5 bg-stitch-accent text-white text-[9px] font-bold rounded-full leading-none">
               {activeFilterCount}
             </span>
           )}
         </button>
+      </div>
 
-        {/* Product count */}
-        <div className="text-xs text-neutral-500 uppercase tracking-wider">
-          {totalProducts !== undefined ? (
-            <span>
-              Showing <strong className="text-black">{totalProducts}</strong> Items
-            </span>
-          ) : null}
+      {/* 2. Desktop Toolbar (Count, Active Chips, Sort Selector) */}
+      <div className="hidden lg:flex items-center justify-between py-3 mb-6 border-b border-stitch-border gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
+            {totalProducts !== undefined ? (
+              <>Showing <strong className="text-stitch-primary font-bold">{totalProducts}</strong> Products</>
+            ) : null}
+          </span>
+
+          {/* Active filter chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {filters.category && filters.category !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                  {filters.category}
+                  <button type="button" onClick={() => handleCategorySelect("all")} className="hover:text-stitch-error">
+                    <MaterialIcon name="close" size="xs" />
+                  </button>
+                </span>
+              )}
+              {filters.sizes.map((s) => (
+                <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                  Size: {s}
+                  <button type="button" onClick={() => handleSizeToggle(s)} className="hover:text-stitch-error">
+                    <MaterialIcon name="close" size="xs" />
+                  </button>
+                </span>
+              ))}
+              {filters.colors.map((c) => (
+                <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                  {c}
+                  <button type="button" onClick={() => handleColorToggle(c)} className="hover:text-stitch-error">
+                    <MaterialIcon name="close" size="xs" />
+                  </button>
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-[10px] font-bold text-stitch-secondary-text hover:text-stitch-primary uppercase underline ml-1"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Sort selector */}
+        {/* Desktop Sort Dropdown */}
         <div className="flex items-center gap-2">
-          <label htmlFor="sort-select" className="text-xs text-neutral-500 uppercase hidden sm:inline">
+          <label htmlFor="desktop-sort-select" className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
             Sort by:
           </label>
-          <select
-            id="sort-select"
-            value={filters.sort}
-            onChange={handleSortChange}
-            className="bg-white border border-neutral-300 text-xs font-semibold uppercase py-1.5 px-2 focus:outline-none focus:border-black cursor-pointer"
-          >
-            <option value="featured">Featured</option>
-            <option value="newest">New Arrivals</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-          </select>
+          <div className="relative">
+            <select
+              id="desktop-sort-select"
+              value={filters.sort}
+              onChange={(e) => handleSortChange(e.target.value as FilterState["sort"])}
+              className="appearance-none bg-stitch-surface-base border border-stitch-border text-xs font-bold uppercase tracking-wider py-1.5 pl-3 pr-8 rounded-sm text-stitch-primary focus:outline-none focus:border-stitch-primary cursor-pointer"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <MaterialIcon
+              name="sort"
+              size="xs"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-stitch-secondary-text pointer-events-none"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Desktop Sticky Sidebar */}
-      <aside className="hidden lg:block w-64 shrink-0 pr-6 border-r border-neutral-200">
+      {/* 3. Desktop Sticky Sidebar */}
+      <aside className="hidden lg:block w-64 shrink-0 pr-6 border-r border-stitch-border">
         <div className="sticky top-28">{filterContent}</div>
       </aside>
 
-      {/* Mobile Slide-over Drawer */}
-      {isMobileOpen && (
+      {/* 4. Mobile Slide-over Filter Drawer */}
+      {isFilterDrawerOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsMobileOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsFilterDrawerOpen(false)}
           />
-          <div className="relative ml-auto w-full max-w-xs bg-white h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right">
+          <div className="relative ml-auto w-full max-w-xs bg-stitch-surface-base h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
             <div>
-              <div className="flex items-center justify-between pb-4 border-b border-neutral-200 mb-6">
-                <span className="text-sm font-black uppercase tracking-wider">
-                  Filter Catalog
+              <div className="flex items-center justify-between pb-4 border-b border-stitch-border mb-6">
+                <span className="text-sm font-black uppercase tracking-wider text-stitch-primary">
+                  Filter Products
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsMobileOpen(false)}
-                  className="p-1 text-neutral-500 hover:text-black"
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className="p-1 text-stitch-secondary-text hover:text-stitch-primary transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <MaterialIcon name="close" size="sm" />
                 </button>
               </div>
 
               {filterContent}
             </div>
 
-            <div className="pt-6 border-t border-neutral-200 mt-6">
+            <div className="pt-6 border-t border-stitch-border mt-6 flex gap-3">
+              <Button
+                variant="outline"
+                size="md"
+                className="flex-1 text-xs"
+                onClick={handleReset}
+              >
+                Reset
+              </Button>
               <Button
                 variant="primary"
-                size="lg"
-                className="w-full"
-                onClick={() => setIsMobileOpen(false)}
+                size="md"
+                className="flex-1 text-xs"
+                onClick={() => setIsFilterDrawerOpen(false)}
               >
-                Apply Filters
+                Apply
               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Mobile Sort Bottom Sheet */}
+      {isSortModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center lg:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsSortModalOpen(false)}
+          />
+          <div className="relative w-full max-w-sm bg-stitch-surface-base rounded-t-lg sm:rounded-lg p-6 shadow-2xl z-10 animate-in slide-in-from-bottom duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-stitch-border mb-4">
+              <span className="text-sm font-black uppercase tracking-wider text-stitch-primary">
+                Sort By
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsSortModalOpen(false)}
+                className="p-1 text-stitch-secondary-text hover:text-stitch-primary"
+              >
+                <MaterialIcon name="close" size="sm" />
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              {SORT_OPTIONS.map((opt) => {
+                const isSelected = filters.sort === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleSortChange(opt.value)}
+                    className={cn(
+                      "w-full flex items-center justify-between p-3 rounded text-xs font-bold uppercase tracking-wider transition-colors",
+                      isSelected
+                        ? "bg-stitch-surface-container text-stitch-primary"
+                        : "text-stitch-secondary-text hover:text-stitch-primary hover:bg-stitch-surface-container/40"
+                    )}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <MaterialIcon name="check" size="sm" className="text-stitch-accent" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -335,3 +453,4 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
 };
 
 export default ProductFilters;
+

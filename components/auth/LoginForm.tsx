@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { AlertCircle, Lock, Mail } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export const LoginForm: React.FC = () => {
   const router = useRouter();
@@ -45,9 +45,9 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md bg-white border border-neutral-200 p-8 shadow-sm">
+    <div className="w-full max-w-md bg-white border border-stitch-border p-8 shadow-sm rounded-lg">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-black uppercase tracking-tight text-black">
+        <h2 className="text-2xl font-bold uppercase tracking-tight text-black">
           Welcome Back
         </h2>
         <p className="text-xs text-neutral-500 mt-1 uppercase tracking-wider">
@@ -56,8 +56,8 @@ export const LoginForm: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 rounded">
+          <MaterialIcon name="error" size={16} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -74,9 +74,9 @@ export const LoginForm: React.FC = () => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="mail" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
         </div>
 
@@ -91,9 +91,9 @@ export const LoginForm: React.FC = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="lock" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export const LoginForm: React.FC = () => {
         </Button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-neutral-200 text-center text-xs text-neutral-600">
+      <div className="mt-8 pt-6 border-t border-stitch-border text-center text-xs text-neutral-600">
         Don't have an account yet?{" "}
         <Link
           href={`/register${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
@@ -122,3 +122,4 @@ export const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
+

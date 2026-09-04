@@ -1,12 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { AlertCircle } from "lucide-react";
-import { getProductByIdOrSlug } from "@/modules/products/service";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import { getProductByIdOrSlug, getProducts } from "@/modules/products/service";
 import { ProductDetailClient } from "@/components/product/ProductDetailClient";
 import { Metadata } from "next";
+
+import { ProductCardDTO } from "@/modules/products/types";
 
 interface PageProps {
   params: {
@@ -32,15 +33,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   if (!product) {
     return (
-      <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
+      <div className="py-20 bg-stitch-surface-base min-h-[60vh] flex items-center justify-center text-stitch-primary">
         <Container size="sm" className="text-center">
-          <div className="p-4 bg-rose-50 border border-rose-200 inline-block rounded-full mb-4">
-            <AlertCircle className="h-8 w-8 text-rose-600" />
+          <div className="p-4 bg-stitch-surface-container border border-stitch-error/30 inline-block rounded-full mb-4">
+            <MaterialIcon name="error" size="xl" className="text-stitch-error" />
           </div>
-          <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-2">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-stitch-primary mb-2">
             Product Not Found
           </h2>
-          <p className="text-xs text-neutral-500 mb-6 max-w-sm mx-auto">
+          <p className="text-xs text-stitch-secondary-text mb-6 max-w-sm mx-auto">
             The requested product is unavailable or does not exist in our catalog.
           </p>
           <Link href="/products">
@@ -53,5 +54,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
     );
   }
 
-  return <ProductDetailClient initialProduct={product} />;
+  // Fetch related products from the same category
+  let relatedProducts: ProductCardDTO[] = [];
+  try {
+    const result = await getProducts({ category: product.categorySlug, limit: 5 });
+    relatedProducts = result.products.filter((p) => p.id !== product.id).slice(0, 4);
+  } catch {
+    relatedProducts = [];
+  }
+
+  return (
+    <ProductDetailClient
+      initialProduct={product}
+      relatedProducts={relatedProducts}
+    />
+  );
 }
+

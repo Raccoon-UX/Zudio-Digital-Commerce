@@ -8,7 +8,7 @@ import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductFilters, FilterState } from "@/components/product/ProductFilters";
 import { ProductCardDTO } from "@/modules/products/types";
 import { Button } from "@/components/ui/Button";
-import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export default function CategoryPage() {
   const params = useParams();
@@ -113,37 +113,56 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="py-8 bg-white min-h-screen">
+    <div className="py-6 sm:py-8 bg-stitch-surface-base min-h-screen text-stitch-primary">
       <Container size="xl">
-        {/* Category Hero Editorial Banner */}
-        <div className="relative overflow-hidden bg-neutral-950 text-white p-8 sm:p-14 mb-8 border border-neutral-800 shadow-md">
+        {/* 1. Stitch Category Breadcrumb */}
+        <nav className="mb-4" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
+            <li>
+              <Link href="/" className="hover:text-stitch-primary transition-colors">
+                Home
+              </Link>
+            </li>
+            <li>
+              <MaterialIcon name="chevron_right" size="xs" className="text-stitch-secondary-text/60" />
+            </li>
+            <li>
+              <Link href="/products" className="hover:text-stitch-primary transition-colors">
+                Categories
+              </Link>
+            </li>
+            <li>
+              <MaterialIcon name="chevron_right" size="xs" className="text-stitch-secondary-text/60" />
+            </li>
+            <li className="text-stitch-primary font-bold">{currentMeta.title}</li>
+          </ol>
+        </nav>
+
+        {/* 2. Category Hero Editorial Banner */}
+        <div className="relative overflow-hidden bg-neutral-950 text-white p-6 sm:p-12 mb-8 rounded-sm border border-neutral-800 shadow-md">
           <div className="absolute inset-0 z-0">
             <img
               src={currentMeta.bgImage}
               alt={currentMeta.title}
-              className="h-full w-full object-cover object-center opacity-35 scale-105"
+              className="h-full w-full object-cover object-center opacity-40 scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/35" />
           </div>
 
           <div className="relative z-10 max-w-2xl">
-            <div className="text-[11px] text-neutral-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Link href="/" className="hover:text-white transition-colors">Home</Link>
-              <span>/</span>
-              <Link href="/products" className="hover:text-white transition-colors">Categories</Link>
-              <span>/</span>
-              <span className="text-white font-bold">{categorySlug}</span>
-            </div>
             <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white drop-shadow-sm">
               {currentMeta.title}
             </h1>
-            <p className="text-xs sm:text-sm text-neutral-200 mt-2.5 font-light leading-relaxed drop-shadow">
+            <p className="text-xs sm:text-sm text-neutral-200 mt-2 font-normal leading-relaxed drop-shadow max-w-lg">
               {currentMeta.subtitle}
+            </p>
+            <p className="text-xs font-bold uppercase tracking-wider text-stitch-accent mt-3">
+              {total} Products Found
             </p>
           </div>
         </div>
 
-        {/* Main Grid + Filter Layout */}
+        {/* 3. Main Grid + Filter Layout */}
         <div className="flex flex-col lg:flex-row gap-8">
           <ProductFilters
             filters={filters}
@@ -153,11 +172,11 @@ export default function CategoryPage() {
 
           <div className="flex-1">
             {error ? (
-              <div className="p-6 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 shrink-0" />
+              <div className="p-6 bg-stitch-surface-container border border-stitch-error/30 text-stitch-error text-xs flex items-center gap-3 rounded-sm">
+                <MaterialIcon name="error" size="md" className="shrink-0" />
                 <div>
-                  <p className="font-bold">Error loading category</p>
-                  <p className="text-rose-600 mt-0.5">{error}</p>
+                  <p className="font-bold uppercase tracking-wider">Error loading category</p>
+                  <p className="mt-0.5">{error}</p>
                 </div>
               </div>
             ) : (
@@ -177,9 +196,9 @@ export default function CategoryPage() {
                   }
                 />
 
-                {/* Pagination Controls */}
+                {/* 4. Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-neutral-200">
+                  <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-stitch-border">
                     <Button
                       variant="outline"
                       size="sm"
@@ -187,10 +206,10 @@ export default function CategoryPage() {
                       onClick={() => handlePageChange(page - 1)}
                       className="text-xs font-bold uppercase tracking-wider"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      <MaterialIcon name="chevron_left" size="xs" className="mr-1" />
                       Previous
                     </Button>
-                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
                       Page {page} of {totalPages}
                     </span>
                     <Button
@@ -201,7 +220,7 @@ export default function CategoryPage() {
                       className="text-xs font-bold uppercase tracking-wider"
                     >
                       Next
-                      <ChevronRight className="h-4 w-4 ml-1" />
+                      <MaterialIcon name="chevron_right" size="xs" className="ml-1" />
                     </Button>
                   </div>
                 )}
@@ -213,3 +232,4 @@ export default function CategoryPage() {
     </div>
   );
 }
+

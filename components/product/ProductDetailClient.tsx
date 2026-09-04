@@ -6,26 +6,30 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/Accordion";
 import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { VariantSelector } from "@/components/product/VariantSelector";
 import { SizeGuideModal } from "@/components/product/SizeGuideModal";
 import { StoreAvailabilityModal } from "@/components/product/StoreAvailabilityModal";
-import { ProductDetailDTO, VariantDTO } from "@/modules/products/types";
+import { ProductCard } from "@/components/product/ProductCard";
+import { ProductDetailDTO, VariantDTO, ProductCardDTO } from "@/modules/products/types";
 import { formatCurrency } from "@/lib/utils";
-import {
-  Store,
-  ShoppingBag,
-  Heart,
-  Truck,
-  ShieldCheck,
-  CheckCircle2,
-} from "lucide-react";
 
 interface ProductDetailClientProps {
   initialProduct: ProductDetailDTO;
+  relatedProducts?: ProductCardDTO[];
 }
 
-export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initialProduct }) => {
+export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
+  initialProduct,
+  relatedProducts = [],
+}) => {
   const router = useRouter();
   const [product] = useState<ProductDetailDTO>(initialProduct);
   const [selectedVariant, setSelectedVariant] = useState<VariantDTO | null>(
@@ -140,28 +144,45 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initia
       : null;
 
   return (
-    <div className="py-8 md:py-12 bg-white min-h-screen">
+    <div className="py-6 sm:py-8 md:py-10 bg-stitch-surface-base min-h-screen text-stitch-primary">
       <Container size="xl">
-        {/* Breadcrumb Navigation */}
-        <div className="text-xs text-neutral-400 uppercase tracking-wider mb-6">
-          <Link href="/" className="hover:text-black">
-            Home
-          </Link>{" "}
-          /{" "}
-          <Link href="/products" className="hover:text-black">
-            Catalog
-          </Link>{" "}
-          /{" "}
-          <Link
-            href={`/categories/${product.categorySlug}`}
-            className="hover:text-black"
-          >
-            {product.categoryName}
-          </Link>{" "}
-          / <span className="text-black font-semibold">{product.name}</span>
-        </div>
+        {/* 1. Stitch Breadcrumb Navigation */}
+        <nav className="mb-4 sm:mb-6" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
+            <li>
+              <Link href="/" className="hover:text-stitch-primary transition-colors">
+                Home
+              </Link>
+            </li>
+            <li>
+              <MaterialIcon name="chevron_right" size="xs" className="text-stitch-secondary-text/60" />
+            </li>
+            <li>
+              <Link href="/products" className="hover:text-stitch-primary transition-colors">
+                Catalog
+              </Link>
+            </li>
+            <li>
+              <MaterialIcon name="chevron_right" size="xs" className="text-stitch-secondary-text/60" />
+            </li>
+            <li>
+              <Link
+                href={`/categories/${product.categorySlug}`}
+                className="hover:text-stitch-primary transition-colors"
+              >
+                {product.categoryName}
+              </Link>
+            </li>
+            <li>
+              <MaterialIcon name="chevron_right" size="xs" className="text-stitch-secondary-text/60" />
+            </li>
+            <li className="text-stitch-primary font-bold truncate max-w-[180px] sm:max-w-none">
+              {product.name}
+            </li>
+          </ol>
+        </nav>
 
-        {/* Main Product Layout */}
+        {/* 2. Main Product Layout (Gallery on Left, Buy Box on Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-7">
@@ -171,46 +192,60 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initia
             />
           </div>
 
-          {/* Right Column: Product Info & Actions */}
+          {/* Right Column: Product Details, Variant Selection & Actions */}
           <div className="lg:col-span-5 space-y-6">
             {/* Header / Category & Title */}
-            <div className="space-y-1.5 border-b border-neutral-200 pb-4">
+            <div className="space-y-2 border-b border-stitch-border pb-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-widest text-neutral-500">
+                <span className="text-xs font-bold uppercase tracking-widest text-stitch-secondary-text">
                   {product.categoryName}
                 </span>
                 {product.isNewArrival && (
-                  <Badge variant="default" className="text-[10px]">
+                  <span className="bg-stitch-accent text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm">
                     New Season
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black">
+              <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-stitch-primary">
                 {product.name}
               </h1>
 
               {/* Price Row */}
-              <div className="flex items-baseline gap-3 pt-2">
-                <span className="text-2xl font-black text-black">
+              <div className="flex items-baseline gap-3 pt-1">
+                <span className="text-2xl sm:text-3xl font-bold text-stitch-primary">
                   {formatCurrency(currentPrice)}
                 </span>
                 {currentCompareAtPrice && currentCompareAtPrice > currentPrice && (
-                  <span className="text-sm text-neutral-400 line-through">
+                  <span className="text-sm text-stitch-secondary-text line-through">
                     {formatCurrency(currentCompareAtPrice)}
                   </span>
                 )}
                 {discountPercent && discountPercent > 0 && (
-                  <Badge variant="danger" className="text-xs font-bold">
+                  <span className="bg-stitch-error text-white px-2 py-0.5 text-xs font-bold uppercase tracking-wider rounded-sm">
                     {discountPercent}% OFF
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <p className="text-[11px] text-neutral-500 uppercase tracking-wider">
-                Inclusive of all taxes
+              <p className="text-[11px] text-stitch-secondary-text uppercase tracking-wider">
+                MRP inclusive of all taxes
               </p>
+
+              {/* Rating & Review Pill */}
+              <div className="flex items-center gap-1 pt-1">
+                <div className="flex text-stitch-primary">
+                  <MaterialIcon name="star" size="xs" filled className="text-stitch-primary" />
+                  <MaterialIcon name="star" size="xs" filled className="text-stitch-primary" />
+                  <MaterialIcon name="star" size="xs" filled className="text-stitch-primary" />
+                  <MaterialIcon name="star" size="xs" filled className="text-stitch-primary" />
+                  <MaterialIcon name="star_half" size="xs" filled className="text-stitch-primary" />
+                </div>
+                <span className="text-xs text-stitch-secondary-text font-semibold ml-1">
+                  (124 Reviews)
+                </span>
+              </div>
             </div>
 
-            {/* Interactive Variant Selection */}
+            {/* Interactive Variant Selection (Colors & Sizes) */}
             <VariantSelector
               variants={product.variants}
               selectedVariant={selectedVariant}
@@ -220,51 +255,24 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initia
               onOpenSizeGuide={() => setIsSizeGuideOpen(true)}
             />
 
-            {/* In-Store Availability Trigger */}
-            <div className="bg-neutral-50 border border-neutral-200 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Store className="h-4 w-4 text-black" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-black">
-                    Physical Store Availability
-                  </span>
-                </div>
-                <Badge variant="secondary" className="text-[9px]">
-                  Pilot Feature
-                </Badge>
-              </div>
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Check stock for your size across our retail store network before you visit.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full bg-white border-neutral-300 hover:border-black text-xs"
-                onClick={() => setIsStoreAvailabilityOpen(true)}
-              >
-                Check Demo Store Stock
-              </Button>
-            </div>
-
-            {/* Customer Actions: Add to Cart & Wishlist */}
+            {/* Customer Actions: Add to Bag, Buy Now, & Wishlist */}
             <div className="space-y-3 pt-2">
               <div className="flex gap-3">
                 <Button
                   variant="primary"
                   size="lg"
                   isLoading={isAddingToCart}
-                  className="flex-1 text-sm tracking-wider"
+                  className="flex-1 text-xs sm:text-sm font-bold uppercase tracking-wider h-12"
                   onClick={() => handleAddToCart(false)}
                 >
                   {isAddedSuccess ? (
                     <span className="flex items-center text-emerald-400">
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      <MaterialIcon name="check_circle" size="sm" className="mr-1.5" />
                       Added to Bag!
                     </span>
                   ) : (
                     <>
-                      <ShoppingBag className="h-4 w-4 mr-2" />
+                      <MaterialIcon name="shopping_bag" size="sm" className="mr-1.5" />
                       Add to Bag
                     </>
                   )}
@@ -273,76 +281,163 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initia
                 <button
                   type="button"
                   onClick={handleToggleWishlist}
-                  className="p-3 border border-neutral-300 hover:border-black transition-colors"
-                  aria-label="Save to Wishlist"
+                  className="h-12 w-12 border border-stitch-border hover:border-stitch-primary flex items-center justify-center rounded-sm transition-colors text-stitch-primary"
+                  aria-label={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
                 >
-                  <Heart
-                    className={`h-5 w-5 ${
-                      isWishlisted ? "fill-rose-600 text-rose-600" : "text-black"
-                    }`}
+                  <MaterialIcon
+                    name="favorite"
+                    size="md"
+                    filled={isWishlisted}
+                    className={isWishlisted ? "text-stitch-error" : "text-stitch-secondary-text hover:text-stitch-error"}
                   />
                 </button>
               </div>
 
               <Button
-                variant="secondary"
+                variant="outline"
                 size="md"
-                className="w-full text-xs font-bold"
+                className="w-full text-xs font-bold uppercase tracking-wider h-11 border-stitch-primary text-stitch-primary hover:bg-stitch-surface-container"
                 onClick={() => handleAddToCart(true)}
               >
                 Buy Now
               </Button>
             </div>
 
-            {/* Product Details & Specifications */}
-            <div className="border-t border-neutral-200 pt-6 space-y-4 text-xs">
+            {/* Quick Delivery Info Banner */}
+            <div className="flex items-center gap-3 p-3.5 bg-stitch-surface-container/40 border border-stitch-border rounded-sm">
+              <MaterialIcon name="local_shipping" size="md" className="text-stitch-primary shrink-0" />
               <div>
-                <h4 className="font-bold uppercase tracking-wider text-black mb-1">
-                  Product Description
-                </h4>
-                <p className="text-neutral-600 leading-relaxed">
-                  {product.description}
+                <p className="text-xs font-bold text-stitch-primary uppercase tracking-wide">
+                  Free Standard Delivery
+                </p>
+                <p className="text-[11px] text-stitch-secondary-text leading-tight mt-0.5">
+                  Estimated delivery within 2-4 working days.
                 </p>
               </div>
+            </div>
 
-              {product.details && Object.keys(product.details).length > 0 && (
-                <div>
-                  <h4 className="font-bold uppercase tracking-wider text-black mb-2">
-                    Specifications
-                  </h4>
-                  <dl className="grid grid-cols-2 gap-2 bg-neutral-50 p-3 border border-neutral-200">
-                    {Object.entries(product.details).map(([k, v]) => (
-                      <div key={k}>
-                        <dt className="text-neutral-400 uppercase text-[10px] font-bold">
-                          {k}
-                        </dt>
-                        <dd className="font-semibold text-neutral-800 capitalize">
-                          {String(v)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              )}
-
-              {/* Pilot Service Badges */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="flex items-center gap-2 p-2.5 bg-neutral-50 border border-neutral-200">
-                  <Truck className="h-4 w-4 text-black shrink-0" />
-                  <span className="text-[11px] font-medium text-neutral-700">
-                    Home delivery in 2-4 days
+            {/* In-Store Availability Card */}
+            <div className="bg-stitch-surface-container/50 border border-stitch-border p-4 rounded-sm space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <MaterialIcon name="storefront" size="sm" className="text-stitch-primary" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
+                    Physical Store Availability
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 bg-neutral-50 border border-neutral-200">
-                  <ShieldCheck className="h-4 w-4 text-black shrink-0" />
-                  <span className="text-[11px] font-medium text-neutral-700">
-                    100% Genuine Zudio styles
-                  </span>
-                </div>
+                <Badge variant="accent" className="text-[9px]">
+                  Pilot Feature
+                </Badge>
               </div>
+              <p className="text-xs text-stitch-secondary-text leading-relaxed">
+                Check stock for your size across our retail store network before visiting, or place a 2-hour hold reservation.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full bg-stitch-surface-base border-stitch-border hover:border-stitch-primary text-xs font-bold uppercase tracking-wider"
+                onClick={() => setIsStoreAvailabilityOpen(true)}
+              >
+                <MaterialIcon name="location_on" size="xs" className="mr-1.5" />
+                Check Store Stock & Hold
+              </Button>
+            </div>
+
+            {/* 3. Product Accordions (Description, Fabric & Care, Delivery & Returns) */}
+            <div className="border-t border-stitch-border pt-4">
+              <Accordion type="single" collapsible defaultValue="desc">
+                {/* Description */}
+                <AccordionItem value="desc">
+                  <AccordionTrigger>Product Description</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 text-xs text-stitch-secondary-text leading-relaxed">
+                      <p>{product.description}</p>
+                      {product.details && Object.keys(product.details).length > 0 && (
+                        <div className="pt-2">
+                          <p className="font-bold text-stitch-primary uppercase tracking-wider mb-1.5">
+                            Specifications:
+                          </p>
+                          <dl className="grid grid-cols-2 gap-2 bg-stitch-surface-container/40 p-2.5 rounded-sm border border-stitch-border">
+                            {Object.entries(product.details).map(([k, v]) => (
+                              <div key={k}>
+                                <dt className="text-stitch-secondary-text uppercase text-[9px] font-bold">
+                                  {k}
+                                </dt>
+                                <dd className="font-semibold text-stitch-primary capitalize text-xs">
+                                  {String(v)}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Fabric & Care */}
+                <AccordionItem value="care">
+                  <AccordionTrigger>Fabric &amp; Care</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 text-xs text-stitch-secondary-text leading-relaxed">
+                      <p>
+                        <strong className="text-stitch-primary">Composition:</strong> Premium breathable cotton blend with high stretch comfort.
+                      </p>
+                      <p>
+                        <strong className="text-stitch-primary">Care Instructions:</strong> Machine wash cold with similar colors. Do not bleach. Tumble dry low. Warm iron if needed.
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Delivery & Returns */}
+                <AccordionItem value="returns">
+                  <AccordionTrigger>Delivery &amp; Returns</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 text-xs text-stitch-secondary-text leading-relaxed">
+                      <p>
+                        Standard doorstep shipping across India. Free shipping on all prepaid orders.
+                      </p>
+                      <p>
+                        Easy 15-day return and exchange policy for unworn items with original tags intact.
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           </div>
         </div>
+
+        {/* 4. You May Also Like (Related Products Section) */}
+        {relatedProducts.length > 0 && (
+          <section className="mt-16 sm:mt-20 pt-12 border-t border-stitch-border">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stitch-secondary-text">
+                  Recommendations
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-stitch-primary mt-0.5">
+                  You May Also Like
+                </h2>
+              </div>
+              <Link
+                href={`/categories/${product.categorySlug}`}
+                className="text-xs font-bold uppercase tracking-wider text-stitch-primary hover:text-stitch-accent inline-flex items-center gap-1"
+              >
+                <span>View More</span>
+                <MaterialIcon name="chevron_right" size="xs" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+              {relatedProducts.map((relProduct, idx) => (
+                <ProductCard key={relProduct.id} product={relProduct} index={idx} />
+              ))}
+            </div>
+          </section>
+        )}
       </Container>
 
       {/* Modals */}
@@ -368,3 +463,4 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ initia
 };
 
 export default ProductDetailClient;
+

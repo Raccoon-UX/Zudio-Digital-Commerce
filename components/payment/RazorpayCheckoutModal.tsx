@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { RazorpayOrderResponseDTO } from "@/modules/payments/types";
-import { AlertCircle, Lock, ShieldCheck } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Button } from "@/components/ui/Button";
 
 declare global {
@@ -28,7 +28,6 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Dynamically inject Razorpay checkout script if not present
     const loadScript = () => {
       if (document.getElementById("razorpay-checkout-script")) {
         launchRazorpay();
@@ -48,7 +47,6 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
 
     const launchRazorpay = () => {
       if (typeof window === "undefined" || !window.Razorpay) {
-        // In local mock test mode when script cannot load external JS
         return;
       }
 
@@ -59,9 +57,9 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
           currency: orderData.currency,
           name: "Zudio Concept Pilot",
           description: `Payment for Order #${orderData.orderNumber}`,
-          image: "https://placehold.co/100x100/000000/FFFFFF/png?text=ZUDIO",
+          image: "https://placehold.co/100x100/1A1A1A/FFFFFF/png?text=ZUDIO",
           order_id: orderData.razorpayOrderId.startsWith("order_test_")
-            ? undefined // for placeholder test mode
+            ? undefined
             : orderData.razorpayOrderId,
           prefill: {
             name: orderData.customer.name,
@@ -69,7 +67,7 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
             contact: orderData.customer.phone,
           },
           theme: {
-            color: "#000000",
+            color: "#1A1A1A",
           },
           handler: async (response: any) => {
             setIsVerifying(true);
@@ -109,10 +107,14 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
         };
 
         const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", (resp: any) => {
+          console.error("Razorpay payment failed:", resp.error);
+          onFailure(resp.error?.description || "Payment failed at gateway.");
+        });
         rzp.open();
-      } catch (err: any) {
-        console.error("Razorpay instance creation error:", err);
-        setError("Failed to open Razorpay checkout modal.");
+      } catch (err) {
+        console.error("Failed to open Razorpay:", err);
+        setError("Unable to launch gateway dialog.");
       }
     };
 
@@ -120,40 +122,40 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
   }, [orderData, onSuccess, onFailure, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-white border border-neutral-200 p-8 max-w-md w-full shadow-2xl text-center space-y-4 animate-in zoom-in-95">
-        <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto text-black">
-          <Lock className="h-6 w-6" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+      <div className="bg-stitch-surface-base border border-stitch-border p-8 max-w-md w-full shadow-2xl text-center space-y-4 animate-in zoom-in-95 rounded-lg">
+        <div className="h-12 w-12 rounded-full bg-stitch-surface-container flex items-center justify-center mx-auto text-stitch-primary">
+          <MaterialIcon name="lock" size="md" />
         </div>
 
         <div>
-          <h3 className="text-base font-black uppercase tracking-tight text-black">
-            {isVerifying ? "Verifying Payment..." : "Launching Razorpay Secure Gateway"}
+          <h3 className="text-base font-black uppercase tracking-tight text-stitch-primary">
+            {isVerifying ? "Verifying Payment..." : "Launching Razorpay Gateway"}
           </h3>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-stitch-secondary-text mt-1">
             Order #{orderData.orderNumber} · Total: ₹{(orderData.amount / 100).toFixed(2)}
           </p>
         </div>
 
         {isVerifying && (
           <div className="py-4 space-y-2">
-            <div className="animate-spin h-6 w-6 border-2 border-black border-t-transparent rounded-full mx-auto" />
-            <p className="text-[11px] text-neutral-500">
+            <div className="animate-spin h-6 w-6 border-2 border-stitch-border border-t-stitch-primary rounded-full mx-auto" />
+            <p className="text-[11px] text-stitch-secondary-text">
               Performing cryptographic HMAC verification and committing store inventory...
             </p>
           </div>
         )}
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 text-left">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+          <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 text-left rounded">
+            <MaterialIcon name="error" size="sm" className="text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="pt-4 border-t border-neutral-200 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1 text-[11px] text-neutral-500">
-            <ShieldCheck className="h-3.5 w-3.5 text-black" />
+        <div className="pt-4 border-t border-stitch-border flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1 text-[11px] text-stitch-secondary-text">
+            <MaterialIcon name="verified" size="xs" className="text-stitch-accent" />
             <span>Razorpay 256-bit SSL</span>
           </div>
           <Button variant="secondary" size="sm" onClick={onClose} disabled={isVerifying}>

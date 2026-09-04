@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Store, Clock, ArrowRight, MapPin, CheckCircle2, AlertCircle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { ReservationDTO } from "@/modules/reservations/types";
 
 export default function CustomerReservationsPage() {
@@ -50,8 +50,8 @@ export default function CustomerReservationsPage() {
     return (
       <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
         <Container size="sm" className="text-center">
-          <div className="p-4 bg-neutral-100 border border-neutral-200 inline-block rounded-full mb-4">
-            <Store className="h-8 w-8 text-neutral-600" />
+          <div className="p-4 bg-neutral-100 border border-neutral-200 inline-flex items-center justify-center mb-4">
+            <MaterialIcon name="storefront" size={32} className="text-neutral-700" />
           </div>
           <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-2">
             Please Sign In
@@ -120,7 +120,7 @@ export default function CustomerReservationsPage() {
           <EmptyState
             title="No store reservations found"
             description="Reserve fashion styles at your local store for a 2-hour hold window and try before you buy."
-            icon={Store}
+            iconName="storefront"
             actionLabel="Explore Catalog"
             onAction={() => (window.location.href = "/products")}
           />
@@ -165,9 +165,9 @@ export default function CustomerReservationsPage() {
                   <div className="flex items-center gap-3">
                     {getStatusBadge(res.status)}
                     <Link href={`/reservations/${res.id}`}>
-                      <Button variant="outline" size="sm" className="text-xs py-1 px-3">
-                        View Pickup Pass
-                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                      <Button variant="outline" size="sm" className="text-xs py-1 px-3 inline-flex items-center gap-1">
+                        <span>View Pickup Pass</span>
+                        <MaterialIcon name="arrow_forward" size={14} />
                       </Button>
                     </Link>
                   </div>

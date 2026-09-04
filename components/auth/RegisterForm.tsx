@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { AlertCircle, Lock, Mail, User, Phone } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 export const RegisterForm: React.FC = () => {
   const router = useRouter();
@@ -73,9 +73,9 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md bg-white border border-neutral-200 p-8 shadow-sm">
+    <div className="w-full max-w-md bg-white border border-stitch-border p-8 shadow-sm rounded-lg">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-black uppercase tracking-tight text-black">
+        <h2 className="text-2xl font-bold uppercase tracking-tight text-black">
           Create Account
         </h2>
         <p className="text-xs text-neutral-500 mt-1 uppercase tracking-wider">
@@ -84,8 +84,8 @@ export const RegisterForm: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 shrink-0" />
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 rounded">
+          <MaterialIcon name="error" size={16} className="shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -93,7 +93,7 @@ export const RegisterForm: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div>
           <label className="block font-bold uppercase tracking-wider text-black mb-1.5">
-            Full Name
+            Full Name *
           </label>
           <div className="relative">
             <input
@@ -102,15 +102,15 @@ export const RegisterForm: React.FC = () => {
               placeholder="Sujal Verma"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <User className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="person" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
         </div>
 
         <div>
           <label className="block font-bold uppercase tracking-wider text-black mb-1.5">
-            Email Address
+            Email Address *
           </label>
           <div className="relative">
             <input
@@ -119,9 +119,9 @@ export const RegisterForm: React.FC = () => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <Mail className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="mail" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
         </div>
 
@@ -135,15 +135,15 @@ export const RegisterForm: React.FC = () => {
               placeholder="+91 98765 43210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <Phone className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="call" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
         </div>
 
         <div>
           <label className="block font-bold uppercase tracking-wider text-black mb-1.5">
-            Password (Min. 8 characters)
+            Password (Min. 8 characters) *
           </label>
           <div className="relative">
             <input
@@ -153,9 +153,9 @@ export const RegisterForm: React.FC = () => {
               placeholder="At least 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-neutral-50 border border-neutral-300 py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black"
+              className="w-full bg-stitch-surface border border-stitch-border py-2.5 pl-9 pr-3 text-xs focus:outline-none focus:border-black rounded"
             />
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+            <MaterialIcon name="lock" size={16} className="absolute left-3 top-3 text-neutral-400" />
           </div>
           <p className="text-[10px] text-neutral-400 mt-1">Must contain 8 or more characters</p>
         </div>
@@ -171,7 +171,7 @@ export const RegisterForm: React.FC = () => {
         </Button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-neutral-200 text-center text-xs text-neutral-600">
+      <div className="mt-8 pt-6 border-t border-stitch-border text-center text-xs text-neutral-600">
         Already have an account?{" "}
         <Link
           href={`/login${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`}
@@ -185,3 +185,4 @@ export const RegisterForm: React.FC = () => {
 };
 
 export default RegisterForm;
+

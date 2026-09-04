@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Clock, AlertTriangle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface ReservationCountdownProps {
   expiresAt: string;
@@ -52,7 +52,7 @@ export const ReservationCountdown: React.FC<ReservationCountdownProps> = ({
   if (timeLeft.expired || isExpired) {
     return (
       <div className="p-3 bg-neutral-100 border border-neutral-300 text-neutral-600 text-xs flex items-center justify-center gap-2">
-        <AlertTriangle className="h-4 w-4 text-neutral-500" />
+        <MaterialIcon name="warning" size={16} className="text-neutral-500" />
         <span className="font-bold uppercase tracking-wider">
           Reservation Window Expired
         </span>
@@ -65,7 +65,7 @@ export const ReservationCountdown: React.FC<ReservationCountdownProps> = ({
   return (
     <div className="p-4 bg-black text-white text-center space-y-1">
       <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-        <Clock className="h-3.5 w-3.5 text-amber-400" />
+        <MaterialIcon name="schedule" size={14} className="text-amber-400" />
         <span>Hold Window Remaining</span>
       </div>
 

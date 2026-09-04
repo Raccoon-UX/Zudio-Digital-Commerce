@@ -8,19 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  CheckCircle2,
-  Package,
-  MapPin,
-  Clock,
-  Truck,
-  CreditCard,
-  ArrowLeft,
-  AlertCircle,
-  QrCode,
-  Store,
-  ShieldCheck,
-} from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { OrderDTO } from "@/modules/orders/types";
 import { RazorpayOrderResponseDTO } from "@/modules/payments/types";
 import { RazorpayCheckoutModal } from "@/components/payment/RazorpayCheckoutModal";
@@ -107,8 +95,8 @@ export default function OrderDetailPage() {
     return (
       <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
         <Container size="sm" className="text-center">
-          <div className="p-4 bg-rose-50 border border-rose-200 inline-block rounded-full mb-4">
-            <AlertCircle className="h-8 w-8 text-rose-600" />
+          <div className="p-4 bg-rose-50 border border-rose-200 inline-flex items-center justify-center mb-4">
+            <MaterialIcon name="error" size={32} className="text-rose-600" />
           </div>
           <h2 className="text-xl font-bold uppercase text-black mb-2">Order Not Found</h2>
           <p className="text-xs text-neutral-500 mb-6">{error || "The requested order could not be retrieved."}</p>
@@ -123,10 +111,10 @@ export default function OrderDetailPage() {
   }
 
   const steps = [
-    { title: "Order Placed", key: "ORDER_PLACED", icon: CheckCircle2 },
-    { title: "Confirmed", key: "CONFIRMED", icon: Package },
-    { title: "Shipped", key: "SHIPPED", icon: Truck },
-    { title: "Delivered", key: "DELIVERED", icon: MapPin },
+    { title: "Order Placed", key: "ORDER_PLACED", iconName: "check_circle" },
+    { title: "Confirmed", key: "CONFIRMED", iconName: "inventory_2" },
+    { title: "Shipped", key: "SHIPPED", iconName: "local_shipping" },
+    { title: "Delivered", key: "DELIVERED", iconName: "location_on" },
   ];
 
   const getStepIndex = (status: string) => {
@@ -156,17 +144,17 @@ export default function OrderDetailPage() {
         <div className="mb-6">
           <Link
             href="/orders"
-            className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-neutral-600 hover:text-black"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-600 hover:text-black transition-colors"
           >
-            <ArrowLeft className="h-3.5 w-3.5 mr-1" />
-            Back to Orders
+            <MaterialIcon name="arrow_back" size={16} />
+            <span>Back to Orders</span>
           </Link>
         </div>
 
         {/* Payment Success Celebratory Banner */}
         {isPaymentSuccessNotice && isPaid && (
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-center gap-3 animate-in slide-in-from-top">
-            <CheckCircle2 className="h-6 w-6 text-emerald-700 shrink-0" />
+            <MaterialIcon name="check_circle" size={24} className="text-emerald-700 shrink-0" />
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider">
                 Payment Verified & Store Inventory Committed!
@@ -189,7 +177,7 @@ export default function OrderDetailPage() {
                     : "bg-amber-100 text-amber-800"
                 }`}
               >
-                {isPaid ? <CheckCircle2 className="h-6 w-6" /> : <Clock className="h-6 w-6" />}
+                <MaterialIcon name={isPaid ? "check_circle" : "schedule"} size={24} />
               </div>
               <div>
                 <span
@@ -228,7 +216,6 @@ export default function OrderDetailPage() {
           <div className="pt-6 border-t border-neutral-100">
             <div className="grid grid-cols-4 gap-2">
               {steps.map((step, idx) => {
-                const Icon = step.icon;
                 const isPassed = idx <= currentStepIdx;
                 const isCurrent = idx === currentStepIdx;
 
@@ -241,7 +228,7 @@ export default function OrderDetailPage() {
                           : "bg-neutral-100 text-neutral-400 border-neutral-300"
                       }`}
                     >
-                      <Icon className="h-4 w-4" />
+                      <MaterialIcon name={step.iconName} size={16} />
                     </div>
                     <p
                       className={`text-[10px] uppercase tracking-wider font-bold ${
@@ -270,8 +257,8 @@ export default function OrderDetailPage() {
                 Purchased Items ({order.itemCount})
               </h3>
               {order.fulfillmentStore && (
-                <div className="flex items-center gap-1 text-xs text-neutral-600">
-                  <Store className="h-3.5 w-3.5 text-black" />
+                <div className="flex items-center gap-1.5 text-xs text-neutral-600">
+                  <MaterialIcon name="storefront" size={16} className="text-black" />
                   <span>
                     Fulfilled by: <strong>{order.fulfillmentStore.name}</strong>
                   </span>
@@ -346,7 +333,7 @@ export default function OrderDetailPage() {
             {/* Payment Actions / Verified Box */}
             <div className="bg-white border border-neutral-200 p-6 shadow-sm space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
-                <CreditCard className="h-4 w-4 text-black" />
+                <MaterialIcon name="credit_card" size={16} className="text-black" />
                 <h3 className="text-xs font-black uppercase tracking-wider text-black">
                   Payment Details
                 </h3>
@@ -356,7 +343,7 @@ export default function OrderDetailPage() {
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1">
                     <div className="flex items-center gap-1.5 font-bold">
-                      <ShieldCheck className="h-4 w-4 text-emerald-700" />
+                      <MaterialIcon name="verified_user" size={16} className="text-emerald-700" />
                       <span>Payment Verified</span>
                     </div>
                     <p className="text-[11px] text-emerald-800">
@@ -384,20 +371,20 @@ export default function OrderDetailPage() {
                     size="md"
                     isLoading={isRetryingPayment}
                     onClick={handleLaunchRazorpayPayment}
-                    className="w-full text-xs font-bold tracking-wider"
+                    className="w-full text-xs font-bold tracking-wider inline-flex items-center justify-center gap-1.5"
                   >
-                    <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-                    Pay with Razorpay ({formatCurrency(order.total)})
+                    <MaterialIcon name="credit_card" size={16} />
+                    <span>Pay with Razorpay ({formatCurrency(order.total)})</span>
                   </Button>
 
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setIsDemoQROpen(true)}
-                    className="w-full text-xs font-bold"
+                    className="w-full text-xs font-bold inline-flex items-center justify-center gap-1.5"
                   >
-                    <QrCode className="h-3.5 w-3.5 mr-1.5" />
-                    Pay via Demo QR
+                    <MaterialIcon name="qr_code_2" size={16} />
+                    <span>Pay via Demo QR</span>
                   </Button>
                 </div>
               )}
@@ -407,7 +394,7 @@ export default function OrderDetailPage() {
             {order.address && (
               <div className="bg-white border border-neutral-200 p-6 shadow-sm space-y-3">
                 <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
-                  <MapPin className="h-4 w-4 text-black" />
+                  <MaterialIcon name="location_on" size={16} className="text-black" />
                   <h3 className="text-xs font-black uppercase tracking-wider text-black">
                     Delivery Address Snapshot
                   </h3>

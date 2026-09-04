@@ -3,25 +3,24 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Grid, MapPin, Heart, ShoppingBag } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { cn } from "@/lib/utils";
 
 export const MobileNav: React.FC = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Shop", href: "/products", icon: Grid },
-    { name: "Stores", href: "/stores", icon: MapPin },
-    { name: "Wishlist", href: "/wishlist", icon: Heart },
-    { name: "Cart", href: "/cart", icon: ShoppingBag },
+    { name: "Home", href: "/", iconName: "home" },
+    { name: "Shop", href: "/products", iconName: "grid_view" },
+    { name: "Stores", href: "/stores", iconName: "location_on" },
+    { name: "Wishlist", href: "/wishlist", iconName: "favorite" },
+    { name: "Bag", href: "/cart", iconName: "shopping_bag" },
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 px-2 py-1.5 safe-area-pb">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stitch-border px-2 py-1.5 safe-area-pb font-sans">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
-          const Icon = item.icon;
           const isActive =
             item.href === "/"
               ? pathname === "/"
@@ -32,17 +31,19 @@ export const MobileNav: React.FC = () => {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-3 min-w-[56px] text-[10px] font-medium tracking-tight transition-colors",
-                isActive ? "text-black font-bold" : "text-neutral-500 hover:text-neutral-900"
+                "flex flex-col items-center justify-center py-1 px-2.5 min-w-[54px] text-[10px] font-bold uppercase tracking-wider transition-colors select-none",
+                isActive
+                  ? "text-stitch-primary"
+                  : "text-stitch-secondaryText hover:text-stitch-primary"
               )}
             >
-              <Icon
-                className={cn(
-                  "h-5 w-5 mb-0.5",
-                  isActive ? "text-black stroke-[2.25]" : "text-neutral-500 stroke-[1.75]"
-                )}
+              <MaterialIcon
+                name={item.iconName}
+                size="md"
+                filled={isActive}
+                className={cn("mb-0.5", isActive ? "text-stitch-primary" : "text-stitch-secondaryText")}
               />
-              <span>{item.name}</span>
+              <span className={isActive ? "font-black" : "font-medium"}>{item.name}</span>
             </Link>
           );
         })}

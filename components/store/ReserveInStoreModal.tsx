@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { X, Store, Clock, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { StoreStockAvailabilityDTO } from "@/modules/stores/types";
@@ -151,13 +151,13 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
       <div className="relative w-full max-w-lg bg-white border border-neutral-200 p-6 sm:p-8 shadow-2xl z-10 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
           <div className="flex items-center gap-2">
-            <Store className="h-5 w-5 text-black" />
+            <MaterialIcon name="storefront" size={20} className="text-black" />
             <h3 className="text-sm font-black uppercase tracking-wider text-black">
               Reserve in Store (2-Hour Hold)
             </h3>
           </div>
-          <button type="button" onClick={onClose} className="p-1 text-neutral-400 hover:text-black">
-            <X className="h-5 w-5" />
+          <button type="button" onClick={onClose} className="p-1 text-neutral-400 hover:text-black transition-colors" aria-label="Close dialog">
+            <MaterialIcon name="close" size={20} />
           </button>
         </div>
 
@@ -170,9 +170,9 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
 
         {/* 2-Hour Policy Banner */}
         <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
-          <Clock className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+          <MaterialIcon name="schedule" size={16} className="text-amber-700 shrink-0 mt-0.5" />
           <div className="space-y-0.5 text-[11px] leading-normal">
-            <span className="font-bold">2-Hour Hold Policy:</span>
+            <span className="font-bold uppercase tracking-wider">2-Hour Hold Policy:</span>
             <p>
               Your item will be held in-store for <strong>2 hours</strong> from confirmation. Unclaimed reservations expire and release stock automatically.
             </p>
@@ -181,7 +181,7 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
 
         {error && (
           <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
+            <MaterialIcon name="error" size={16} className="shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
         )}

@@ -4,17 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { ReservationDTO } from "@/modules/reservations/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  MapPin,
-  Clock,
-  Phone,
-  QrCode,
-  Store,
-  Navigation,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-} from "lucide-react";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ReservationCountdown } from "./ReservationCountdown";
@@ -120,7 +110,7 @@ export const ReservationSlip: React.FC<ReservationSlipProps> = ({
         {/* Store Pickup Location */}
         <div className="space-y-2 text-xs border-t border-neutral-100 pt-4">
           <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-black">
-            <Store className="h-4 w-4" />
+            <MaterialIcon name="storefront" size={16} className="text-black" />
             <span>{reservation.store.name}</span>
           </div>
 
@@ -141,10 +131,10 @@ export const ReservationSlip: React.FC<ReservationSlipProps> = ({
               href={reservation.store.directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-black hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-black hover:underline"
             >
-              <Navigation className="h-3.5 w-3.5 mr-1" />
-              Navigate with Google Maps
+              <MaterialIcon name="near_me" size={14} className="text-black" />
+              <span>Navigate with Google Maps</span>
             </a>
           </div>
         </div>

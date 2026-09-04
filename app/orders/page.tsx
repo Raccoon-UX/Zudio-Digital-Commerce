@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Package, ArrowRight, Clock, CheckCircle2, Truck, AlertCircle } from "lucide-react";
 import { OrderDTO } from "@/modules/orders/types";
 
 export default function OrdersPage() {
@@ -19,13 +19,14 @@ export default function OrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = async () => {
+  // Authoritative server data fetcher
+  const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/orders");
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setOrders(data.data);
       } else {
         setError(data.error?.message || "Failed to load orders.");
@@ -36,7 +37,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -44,20 +45,20 @@ export default function OrdersPage() {
     } else if (status === "unauthenticated") {
       setIsLoading(false);
     }
-  }, [status]);
+  }, [status, fetchOrders]);
 
   if (status === "unauthenticated") {
     return (
-      <div className="py-20 bg-white min-h-[60vh] flex items-center justify-center">
+      <div className="py-20 bg-[#FAFAFA] min-h-[60vh] flex items-center justify-center">
         <Container size="sm" className="text-center">
-          <div className="p-4 bg-neutral-100 border border-neutral-200 inline-block rounded-full mb-4">
-            <Package className="h-8 w-8 text-neutral-600" />
+          <div className="p-4 bg-white border border-stitch-border inline-flex items-center justify-center rounded-full mb-4 shadow-sm">
+            <MaterialIcon name="inventory_2" size={32} className="text-neutral-700" />
           </div>
-          <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-2">
+          <h2 className="text-2xl font-bold uppercase tracking-tight text-black mb-2">
             Please Sign In
           </h2>
           <p className="text-xs text-neutral-500 mb-6 max-w-sm mx-auto">
-            Sign in to view your order history, delivery statuses, and invoices.
+            Sign in to view your full order history, live dispatch updates, and invoices.
           </p>
           <Link href="/login?callbackUrl=/orders">
             <Button variant="primary" size="md">
@@ -72,55 +73,105 @@ export default function OrdersPage() {
   const getStatusBadge = (orderStatus: string) => {
     switch (orderStatus) {
       case "ORDER_PLACED":
-        return <Badge variant="warning">Order Placed</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded">
+            <MaterialIcon name="schedule" size={12} className="text-amber-700" />
+            <span>Order Placed</span>
+          </span>
+        );
       case "CONFIRMED":
-        return <Badge variant="default">Confirmed</Badge>;
+      case "PROCESSING":
+        return (
+          <span className="inline-flex items-center gap-1 bg-neutral-100 text-neutral-800 border border-neutral-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded">
+            <MaterialIcon name="inventory_2" size={12} className="text-neutral-700" />
+            <span>Processing</span>
+          </span>
+        );
       case "SHIPPED":
-        return <Badge variant="secondary">Shipped</Badge>;
+      case "OUT_FOR_DELIVERY":
+        return (
+          <span className="inline-flex items-center gap-1 bg-neutral-100 text-neutral-800 border border-neutral-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded">
+            <MaterialIcon name="local_shipping" size={12} className="text-stitch-primary" />
+            <span>In-Transit</span>
+          </span>
+        );
       case "DELIVERED":
-        return <Badge variant="success">Delivered</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded">
+            <MaterialIcon name="check_circle" size={12} className="text-emerald-700" />
+            <span>Delivered</span>
+          </span>
+        );
       case "CANCELLED":
-        return <Badge variant="danger">Cancelled</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded">
+            <MaterialIcon name="cancel" size={12} className="text-rose-700" />
+            <span>Cancelled</span>
+          </span>
+        );
       default:
-        return <Badge variant="secondary">{orderStatus}</Badge>;
+        return (
+          <Badge variant="secondary" className="text-[10px]">
+            {orderStatus}
+          </Badge>
+        );
     }
   };
 
   return (
-    <div className="py-10 bg-neutral-50 min-h-screen">
+    <div className="py-10 bg-[#FAFAFA] min-h-screen">
       <Container size="lg">
         {/* Header */}
-        <div className="pb-6 mb-8 border-b border-neutral-200 flex items-center justify-between">
+        <div className="pb-6 mb-8 border-b border-stitch-border flex items-center justify-between">
           <div>
             <div className="text-xs text-neutral-400 uppercase tracking-wider mb-1">
-              <span>Home</span> / <span className="text-black">Orders</span>
+              <Link href="/profile" className="hover:text-black transition-colors">Account</Link> / <span className="text-black font-semibold">Orders</span>
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-black">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-black">
               Order History
             </h1>
           </div>
-          <Link href="/products">
-            <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs">
-              Explore Catalog
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchOrders()}
+              className="p-2 text-neutral-500 hover:text-black border border-stitch-border bg-white rounded transition-colors"
+              title="Refresh order statuses"
+              aria-label="Refresh Orders"
+            >
+              <MaterialIcon name="refresh" size={16} />
+            </button>
+            <Link href="/products">
+              <Button variant="outline" size="sm" className="hidden sm:inline-flex text-xs">
+                Explore Catalog
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white border border-neutral-200 p-6 space-y-4">
+              <div key={i} className="bg-white border border-stitch-border rounded-lg p-6 space-y-4 shadow-sm">
                 <Skeleton className="h-6 w-1/3" />
                 <Skeleton className="h-4 w-1/2" />
                 <Skeleton className="h-16 w-full" />
               </div>
             ))}
           </div>
+        ) : error ? (
+          <div className="py-16 bg-white border border-stitch-border rounded-lg text-center p-8">
+            <MaterialIcon name="error" size={36} className="text-rose-600 mx-auto mb-3" />
+            <h3 className="text-sm font-bold uppercase text-black mb-1">Failed to load orders</h3>
+            <p className="text-xs text-neutral-500 mb-4">{error}</p>
+            <Button variant="primary" size="sm" onClick={() => fetchOrders()}>
+              Retry
+            </Button>
+          </div>
         ) : orders.length === 0 ? (
           <EmptyState
             title="No orders found"
-            description="You have not placed any orders yet. Start exploring our collections to place your first order."
-            icon={Package}
+            description="You have not placed any orders yet. Start exploring our fashion collections to place your first order."
+            iconName="inventory_2"
             actionLabel="Start Shopping"
             onAction={() => (window.location.href = "/products")}
           />
@@ -129,16 +180,16 @@ export default function OrdersPage() {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="bg-white border border-neutral-200 shadow-sm overflow-hidden"
+                className="bg-white border border-stitch-border rounded-lg shadow-sm overflow-hidden transition-colors hover:border-neutral-400"
               >
                 {/* Order Top Bar */}
-                <div className="bg-neutral-100/70 p-4 sm:px-6 border-b border-neutral-200 flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div className="bg-stitch-surface p-4 sm:px-6 border-b border-stitch-border flex flex-wrap items-center justify-between gap-4 text-xs">
                   <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                     <div>
                       <span className="text-neutral-500 uppercase text-[10px] font-bold block">
                         Order Number
                       </span>
-                      <strong className="text-black font-mono font-bold">
+                      <strong className="text-black font-mono font-bold text-sm">
                         {order.orderNumber}
                       </strong>
                     </div>
@@ -147,7 +198,7 @@ export default function OrdersPage() {
                       <span className="text-neutral-500 uppercase text-[10px] font-bold block">
                         Date Placed
                       </span>
-                      <span className="text-neutral-800">
+                      <span className="text-neutral-800 font-medium">
                         {formatDate(order.createdAt)}
                       </span>
                     </div>
@@ -156,7 +207,7 @@ export default function OrdersPage() {
                       <span className="text-neutral-500 uppercase text-[10px] font-bold block">
                         Total Amount
                       </span>
-                      <span className="text-black font-black">
+                      <span className="text-black font-bold">
                         {formatCurrency(order.total)}
                       </span>
                     </div>
@@ -165,9 +216,9 @@ export default function OrdersPage() {
                   <div className="flex items-center gap-3">
                     {getStatusBadge(order.status)}
                     <Link href={`/orders/${order.id}`}>
-                      <Button variant="outline" size="sm" className="text-xs py-1 px-3">
-                        View Details
-                        <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                      <Button variant="outline" size="sm" className="text-xs py-1 px-3 inline-flex items-center gap-1">
+                        <span>View Details</span>
+                        <MaterialIcon name="arrow_forward" size={14} />
                       </Button>
                     </Link>
                   </div>
@@ -181,11 +232,11 @@ export default function OrdersPage() {
                       className="py-3 first:pt-0 last:pb-0 flex items-center justify-between text-xs"
                     >
                       <div className="space-y-0.5">
-                        <h4 className="font-bold uppercase text-black">
+                        <h4 className="font-bold uppercase tracking-wide text-black">
                           {item.productName}
                         </h4>
                         <p className="text-neutral-500 text-[11px]">
-                          Size: {item.sizeName} · Color: {item.colorName} · Qty: {item.quantity}
+                          Size: <strong className="text-neutral-700">{item.sizeName}</strong> · Color: <strong className="text-neutral-700">{item.colorName}</strong> · Qty: <strong>{item.quantity}</strong>
                         </p>
                       </div>
                       <span className="font-bold text-black">
@@ -197,12 +248,15 @@ export default function OrdersPage() {
 
                 {/* Delivery Snapshot Footer */}
                 {order.address && (
-                  <div className="bg-neutral-50 px-4 sm:px-6 py-3 border-t border-neutral-100 text-[11px] text-neutral-500 flex items-center justify-between">
-                    <span>
-                      Delivering to: <strong className="text-black">{order.address.fullName}</strong> ({order.address.city}, {order.address.pincode})
-                    </span>
-                    <span className="text-neutral-400 font-mono">
-                      Payment: {order.paymentStatus}
+                  <div className="bg-neutral-50/70 px-4 sm:px-6 py-3 border-t border-stitch-border text-[11px] text-neutral-600 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <MaterialIcon name="location_on" size={14} className="text-neutral-500" />
+                      <span>
+                        Delivering to: <strong className="text-black">{order.address.fullName}</strong> ({order.address.city}, {order.address.pincode})
+                      </span>
+                    </div>
+                    <span className="text-neutral-500 font-mono text-[10px]">
+                      Payment: <strong className={order.paymentStatus === "PAID" ? "text-emerald-700" : "text-amber-700"}>{order.paymentStatus}</strong>
                     </span>
                   </div>
                 )}
@@ -214,3 +268,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
