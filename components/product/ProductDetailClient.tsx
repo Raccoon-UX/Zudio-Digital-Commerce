@@ -456,6 +456,9 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
           productName={product.name}
           sizeName={selectedVariant.sizeName}
           colorName={selectedVariant.colorName}
+          imageUrl={product.images?.[0]?.url}
+          styleCode={selectedVariant.sku}
+          price={selectedVariant.price}
         />
       )}
     </div>

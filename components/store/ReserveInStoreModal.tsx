@@ -16,6 +16,7 @@ interface ReserveInStoreModalProps {
   productName: string;
   sizeName?: string;
   colorName?: string;
+  defaultStoreId?: string;
 }
 
 export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
@@ -26,12 +27,13 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
   productName,
   sizeName,
   colorName,
+  defaultStoreId,
 }) => {
   const { data: session } = useSession();
   const router = useRouter();
 
   const [stores, setStores] = useState<StoreStockAvailabilityDTO[]>([]);
-  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(defaultStoreId || "");
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
@@ -40,6 +42,12 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
   const [isLoadingStores, setIsLoadingStores] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (defaultStoreId) {
+      setSelectedStoreId(defaultStoreId);
+    }
+  }, [defaultStoreId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -71,9 +79,13 @@ export const ReserveInStoreModal: React.FC<ReserveInStoreModalProps> = ({
       const data = await res.json();
       if (data.success && data.data) {
         setStores(data.data);
-        const firstInStock = data.data.find((s: StoreStockAvailabilityDTO) => s.availableQuantity > 0);
-        if (firstInStock) {
-          setSelectedStoreId(firstInStock.storeId);
+        if (defaultStoreId && data.data.some((s: StoreStockAvailabilityDTO) => s.storeId === defaultStoreId)) {
+          setSelectedStoreId(defaultStoreId);
+        } else {
+          const firstInStock = data.data.find((s: StoreStockAvailabilityDTO) => s.availableQuantity > 0);
+          if (firstInStock) {
+            setSelectedStoreId(firstInStock.storeId);
+          }
         }
       }
     } catch (err) {
