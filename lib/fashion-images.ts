@@ -69,12 +69,12 @@ export const FASHION_IMAGE_REGISTRY: Record<string, ImagePair[]> = {
       secondary: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80",
     },
     {
-      primary: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=800&auto=format&fit=crop&q=80",
-      secondary: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&auto=format&fit=crop&q=80",
-    },
-    {
       primary: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&auto=format&fit=crop&q=80",
       secondary: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&auto=format&fit=crop&q=80",
+    },
+    {
+      primary: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80",
+      secondary: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&auto=format&fit=crop&q=80",
     },
   ],
   "Men:Jackets": [
@@ -202,7 +202,7 @@ export const FASHION_IMAGE_REGISTRY: Record<string, ImagePair[]> = {
   "Women:Jeans": [
     {
       primary: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&auto=format&fit=crop&q=80",
-      secondary: "https://images.unsplash.com/photo-1542272604-780c96856592?w=800&auto=format&fit=crop&q=80",
+      secondary: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=800&auto=format&fit=crop&q=80",
     },
   ],
   "Women:Skirts": [
@@ -225,7 +225,7 @@ export const FASHION_IMAGE_REGISTRY: Record<string, ImagePair[]> = {
       secondary: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80",
     },
     {
-      primary: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&auto=format&fit=crop&q=80",
+      primary: "https://images.unsplash.com/photo-1508873535684-277a3cbcc4e8?w=800&auto=format&fit=crop&q=80",
       secondary: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800&auto=format&fit=crop&q=80",
     },
     {
@@ -238,7 +238,7 @@ export const FASHION_IMAGE_REGISTRY: Record<string, ImagePair[]> = {
     },
     {
       primary: "https://images.unsplash.com/photo-1596870230751-ebdfce98ec42?w=800&auto=format&fit=crop&q=80",
-      secondary: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&auto=format&fit=crop&q=80",
+      secondary: "https://images.unsplash.com/photo-1508873535684-277a3cbcc4e8?w=800&auto=format&fit=crop&q=80",
     },
   ],
 

@@ -400,15 +400,21 @@ export async function importDataset() {
     const avgPrice = Math.round(pInfo.prices.reduce((a, b) => a + b, 0) / pInfo.prices.length);
 
     let targetCatSlug = pInfo.category.toLowerCase();
+    let displayCategory = pInfo.category;
     if (pInfo.clothingType === "Shoes") {
       targetCatSlug = "footwear";
+      displayCategory = "Footwear";
+    } else if (["Dresses", "Skirts", "Tops"].includes(pInfo.clothingType) && targetCatSlug === "men") {
+      targetCatSlug = "women";
+      displayCategory = "Women";
     }
     if (!categoryMap[targetCatSlug]) {
       targetCatSlug = "women";
+      displayCategory = "Women";
     }
     const categoryId = categoryMap[targetCatSlug];
 
-    const cleanTitle = `${pInfo.category}'s ${pInfo.clothingType === "Shoes" ? "Everyday Comfort Sneakers" : "Essential " + pInfo.clothingType} (Style #${pid})`;
+    const cleanTitle = `${displayCategory}'s ${pInfo.clothingType === "Shoes" ? "Everyday Comfort Sneakers" : "Essential " + pInfo.clothingType} (Style #${pid})`;
     const slug = `zudio-${targetCatSlug}-${pInfo.clothingType.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${pid}`;
 
     const product = await prisma.product.upsert({
