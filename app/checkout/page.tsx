@@ -241,7 +241,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="py-6 sm:py-10 bg-stitch-surface-base min-h-screen text-stitch-primary font-sans">
+    <div className="py-6 sm:py-10 pb-32 lg:pb-12 bg-stitch-surface-base min-h-screen text-stitch-primary font-sans">
       <Container size="xl">
         {/* Header & Breadcrumb */}
         <div className="pb-5 mb-6 border-b border-stitch-border flex items-center justify-between">
@@ -819,13 +819,13 @@ export default function CheckoutPage() {
           </div>
 
           {/* Mobile Bottom Submit Bar */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stitch-border p-4 shadow-lg pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stitch-border p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.12)] pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Button
               type="submit"
               variant="primary"
               size="lg"
               isLoading={isPlacingOrder}
-              className="w-full h-14 py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md shadow-sm"
+              className="w-full h-14 py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md shadow-md"
             >
               <MaterialIcon name="lock" size="sm" />
               <span>Pay {formatCurrency(validation?.total || 0)}</span>

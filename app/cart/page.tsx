@@ -397,7 +397,7 @@ export default function CartPage() {
 
         {/* Mobile Sticky Checkout Bar */}
         {!isCartEmpty && (
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-stitch-border p-4 shadow-lg lg:hidden pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stitch-border p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.12)] lg:hidden pb-[calc(16px+env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
               <div>
                 <p className="text-[10px] uppercase font-bold text-stitch-secondary-text tracking-wider">Total Amount</p>

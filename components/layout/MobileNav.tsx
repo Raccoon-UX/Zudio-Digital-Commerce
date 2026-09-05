@@ -9,6 +9,16 @@ import { cn } from "@/lib/utils";
 export const MobileNav: React.FC = () => {
   const pathname = usePathname();
 
+  // Hide mobile bottom navigation on checkout, cart, and admin pages
+  // to ensure primary action bars (Pay Now / Proceed to Checkout) are never obscured
+  if (
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/cart") ||
+    pathname.startsWith("/admin")
+  ) {
+    return null;
+  }
+
   const navItems = [
     { name: "Home", href: "/", iconName: "home" },
     { name: "Shop", href: "/products", iconName: "grid_view" },
