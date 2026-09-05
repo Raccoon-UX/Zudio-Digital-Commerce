@@ -26,12 +26,112 @@ interface ProductDetailClientProps {
   relatedProducts?: ProductCardDTO[];
 }
 
+function getProductSpecifications(product: ProductDetailDTO): { label: string; value: string }[] {
+  const specs: { label: string; value: string }[] = [];
+
+  // 1. If details is a valid JSON object or JSON string, try parsing key-values first
+  if (product.details && typeof product.details === "string") {
+    try {
+      const parsed = JSON.parse(product.details);
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+        for (const [k, v] of Object.entries(parsed)) {
+          if (typeof v === "string" || typeof v === "number") {
+            specs.push({
+              label: k.replace(/([A-Z])/g, " $1").trim(),
+              value: String(v),
+            });
+          }
+        }
+      }
+    } catch {
+      // Not a JSON string, fallback to curated attributes below
+    }
+  }
+
+  // 2. If no JSON specs found, generate clean fashion retail specifications
+  if (specs.length === 0) {
+    const nameTokens = product.name.split(" ");
+    const clothingType =
+      nameTokens.find((w) =>
+        [
+          "Dresses",
+          "Tops",
+          "Hoodies",
+          "T-shirts",
+          "T-Shirts",
+          "Shirts",
+          "Shoes",
+          "Sneakers",
+          "Sweaters",
+          "Pants",
+          "Jackets",
+          "Jeans",
+          "Skirts",
+          "Shorts",
+        ].includes(w)
+      ) || product.categoryName;
+
+    const isFootwear =
+      product.categorySlug === "footwear" ||
+      clothingType.toLowerCase().includes("shoe") ||
+      clothingType.toLowerCase().includes("sneaker");
+
+    specs.push({ label: "Category", value: product.categoryName });
+    specs.push({ label: "Product Type", value: clothingType });
+    specs.push({
+      label: "Fit",
+      value: isFootwear ? "Standard Fit" : "Regular / Comfort Fit",
+    });
+
+    let materialVal = isFootwear
+      ? "Synthetic Leather & Breathable Mesh"
+      : "100% Breathable Combed Cotton / Blend";
+    if (product.details && typeof product.details === "string") {
+      const matMatch = product.details.match(/Material:\s*([^.]+)/i);
+      if (matMatch && matMatch[1]) {
+        materialVal = matMatch[1].trim();
+      }
+    }
+    specs.push({
+      label: isFootwear ? "Upper Material" : "Fabric & Material",
+      value: materialVal,
+    });
+
+    let careVal = isFootwear
+      ? "Durable Cushion Grip Rubber Sole"
+      : "Machine Wash Cold (Gentle Cycle)";
+    if (product.details && typeof product.details === "string") {
+      const careMatch = product.details.match(/(?:Machine wash|Wash care|Care):\s*([^.]+)/i);
+      if (careMatch && careMatch[1]) {
+        careVal = careMatch[0].trim();
+      }
+    }
+    specs.push({
+      label: isFootwear ? "Sole Type" : "Care Instructions",
+      value: careVal,
+    });
+
+    if (product.allSizes && product.allSizes.length > 0) {
+      specs.push({
+        label: "Available Sizes",
+        value: product.allSizes.map((s) => s.name).join(", "),
+      });
+    }
+
+    specs.push({ label: "Occasion", value: "Daily Casual / Smart Wear" });
+    specs.push({ label: "Country of Origin", value: "India" });
+  }
+
+  return specs;
+}
+
 export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
   initialProduct,
   relatedProducts = [],
 }) => {
   const router = useRouter();
   const [product] = useState<ProductDetailDTO>(initialProduct);
+  const specifications = getProductSpecifications(product);
   const [selectedVariant, setSelectedVariant] = useState<VariantDTO | null>(
     initialProduct.variants.length > 0 ? initialProduct.variants[0] : null
   );
@@ -282,6 +382,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
             <div className="space-y-3 pt-2">
               <div className="flex gap-3">
                 <Button
+                  type="button"
                   variant="primary"
                   size="lg"
                   isLoading={isAddingToCart}
@@ -301,70 +402,77 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
                   )}
                 </Button>
 
-                <button
+                {/* Wishlist Button */}
+                <Button
                   type="button"
+                  variant="outline"
+                  size="lg"
+                  className={`h-12 px-4 border-stitch-border ${
+                    isWishlisted ? "text-stitch-error border-stitch-error/50 bg-stitch-error/10" : ""
+                  }`}
                   onClick={handleToggleWishlist}
-                  className="h-12 w-12 border border-stitch-border hover:border-stitch-primary flex items-center justify-center rounded-sm transition-colors text-stitch-primary"
-                  aria-label={isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
+                  aria-label="Wishlist"
                 >
                   <MaterialIcon
-                    name="favorite"
-                    size="md"
-                    filled={isWishlisted}
-                    className={isWishlisted ? "text-stitch-error" : "text-stitch-secondary-text hover:text-stitch-error"}
+                    name={isWishlisted ? "favorite" : "favorite_border"}
+                    size="sm"
+                    className={isWishlisted ? "text-stitch-error" : "text-stitch-primary"}
                   />
-                </button>
+                </Button>
               </div>
 
               <Button
+                type="button"
                 variant="outline"
-                size="md"
-                className="w-full text-xs font-bold uppercase tracking-wider h-11 border-stitch-primary text-stitch-primary hover:bg-stitch-surface-container"
+                size="lg"
+                className="w-full text-sm font-bold uppercase tracking-wider h-12 border-stitch-primary text-stitch-primary hover:bg-stitch-primary hover:text-stitch-surface-base"
+                disabled={!selectedVariant || !selectedVariant.isActive || isAddingToCart}
                 onClick={() => handleAddToCart(true)}
               >
                 Buy Now
               </Button>
             </div>
 
-            {/* Quick Delivery Info Banner */}
-            <div className="flex items-center gap-3 p-3.5 bg-stitch-surface-container/40 border border-stitch-border rounded-sm">
-              <MaterialIcon name="local_shipping" size="md" className="text-stitch-primary shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-stitch-primary uppercase tracking-wide">
-                  Free Standard Delivery
-                </p>
-                <p className="text-[11px] text-stitch-secondary-text leading-tight mt-0.5">
-                  Estimated delivery within 2-4 working days.
-                </p>
-              </div>
-            </div>
-
-            {/* In-Store Availability Card */}
-            <div className="bg-stitch-surface-container/50 border border-stitch-border p-4 rounded-sm space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <MaterialIcon name="storefront" size="sm" className="text-stitch-primary" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
-                    Physical Store Availability
-                  </span>
+            {/* Delivery & Omnichannel Availability Info Card */}
+            <div className="space-y-3 p-4 bg-stitch-surface-container/40 rounded-sm border border-stitch-border text-xs">
+              <div className="flex items-start gap-3">
+                <MaterialIcon name="local_shipping" size="sm" className="text-stitch-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-stitch-primary uppercase tracking-wide">
+                    Free Standard Delivery
+                  </p>
+                  <p className="text-stitch-secondary-text text-[11px]">
+                    Estimated delivery within 2-4 working days.
+                  </p>
                 </div>
-                <Badge variant="accent" className="text-[9px]">
-                  Omnichannel
-                </Badge>
               </div>
-              <p className="text-xs text-stitch-secondary-text leading-relaxed">
-                Check stock for your size across our retail store network before visiting, or place a 2-hour hold reservation.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full bg-stitch-surface-base border-stitch-border hover:border-stitch-primary text-xs font-bold uppercase tracking-wider"
-                onClick={() => setIsStoreAvailabilityOpen(true)}
-              >
-                <MaterialIcon name="location_on" size="xs" className="mr-1.5" />
-                Check Store Stock & Hold
-              </Button>
+
+              <div className="border-t border-stitch-border/50 pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <MaterialIcon name="storefront" size="sm" className="text-stitch-primary" />
+                    <span className="font-bold text-stitch-primary uppercase tracking-wide">
+                      Physical Store Availability
+                    </span>
+                  </div>
+                  <Badge variant="accent" className="text-[9px]">
+                    Omnichannel
+                  </Badge>
+                </div>
+                <p className="text-xs text-stitch-secondary-text leading-relaxed mb-3">
+                  Check stock for your size across our retail store network before visiting, or place a 2-hour hold reservation.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full bg-stitch-surface-base border-stitch-border hover:border-stitch-primary text-xs font-bold uppercase tracking-wider"
+                  onClick={() => setIsStoreAvailabilityOpen(true)}
+                >
+                  <MaterialIcon name="location_on" size="xs" className="mr-1.5" />
+                  Check Store Stock & Hold
+                </Button>
+              </div>
             </div>
 
             {/* 4. Product Accordions (Description, Fabric & Care, Delivery & Returns) */}
@@ -376,22 +484,22 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
                   <AccordionContent>
                     <div className="space-y-3 text-xs text-stitch-secondary-text leading-relaxed">
                       <p>{product.description}</p>
-                      {product.details && Object.keys(product.details).length > 0 && (
+                      {specifications.length > 0 && (
                         <div className="pt-2">
                           <p className="font-bold text-stitch-primary uppercase tracking-wider text-xs mb-2">
                             Specifications
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-stitch-surface-container/30 p-3 sm:p-3.5 rounded-sm border border-stitch-border">
-                            {Object.entries(product.details).map(([k, v]) => (
+                            {specifications.map((spec) => (
                               <div
-                                key={k}
+                                key={spec.label}
                                 className="flex items-center justify-between border-b border-stitch-border/40 pb-1.5 text-xs gap-3 min-w-0"
                               >
                                 <span className="text-stitch-secondary-text uppercase text-[10px] font-bold tracking-wider shrink-0">
-                                  {k}
+                                  {spec.label}
                                 </span>
                                 <span className="font-semibold text-stitch-primary text-right capitalize truncate">
-                                  {String(v)}
+                                  {spec.value}
                                 </span>
                               </div>
                             ))}
@@ -407,12 +515,13 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
                   <AccordionTrigger>Fabric &amp; Care</AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-2 text-xs text-stitch-secondary-text leading-relaxed">
-                      <p>
-                        <strong className="text-stitch-primary">Composition:</strong> Premium breathable cotton blend with high stretch comfort.
-                      </p>
-                      <p>
-                        <strong className="text-stitch-primary">Care Instructions:</strong> Machine wash cold with similar colors. Do not bleach. Tumble dry low. Warm iron if needed.
-                      </p>
+                      {specifications
+                        .filter((s) => ["Fabric & Material", "Upper Material", "Care Instructions", "Sole Type"].includes(s.label))
+                        .map((s) => (
+                          <p key={s.label}>
+                            <strong className="text-stitch-primary">{s.label}:</strong> {s.value}
+                          </p>
+                        ))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
