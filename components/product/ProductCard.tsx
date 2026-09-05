@@ -89,25 +89,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
         </div>
       </Link>
 
-      <div className="p-3 flex flex-col flex-1 gap-1.5">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stitch-secondary-text">
+      <div className="p-3 flex flex-col flex-1 gap-1.5 min-w-0">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stitch-secondary-text truncate">
             {product.categoryName}
           </p>
-          <Link href={`/products/${product.slug}`} className="block">
-            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-stitch-primary line-clamp-1 hover:underline mt-0.5">
+          <Link href={`/products/${product.slug}`} className="block mt-0.5">
+            <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wide text-stitch-primary line-clamp-2 hover:underline leading-snug">
               {product.name}
             </h3>
           </Link>
         </div>
 
-        <div className="mt-auto pt-2 border-t border-stitch-border/60 flex items-center justify-between gap-2">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-bold text-stitch-primary">
+        <div className="mt-auto pt-2 border-t border-stitch-border/60 flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-xs sm:text-sm font-bold text-stitch-primary shrink-0">
               {formatCurrency(product.price)}
             </span>
             {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-xs text-stitch-secondary-text line-through">
+              <span className="text-[10px] sm:text-xs text-stitch-secondary-text line-through shrink-0">
                 {formatCurrency(product.compareAtPrice)}
               </span>
             )}
@@ -119,12 +119,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onWishlistTog
                 <span
                   key={c.name}
                   title={c.name}
-                  className="h-2.5 w-2.5 rounded-full border border-stitch-border shadow-inner"
+                  className="h-2.5 w-2.5 rounded-full border border-stitch-border shadow-inner shrink-0"
                   style={{ backgroundColor: c.hexCode }}
                 />
               ))}
               {product.availableColors.length > 3 && (
-                <span className="text-[9px] text-stitch-secondary-text font-bold">
+                <span className="text-[9px] text-stitch-secondary-text font-bold shrink-0">
                   +{product.availableColors.length - 3}
                 </span>
               )}
