@@ -149,8 +149,8 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* 2. Stitch Hero Section — High-Contrast Fashion Editorial */}
-      <section className="relative w-full min-h-[580px] sm:min-h-[640px] md:min-h-[720px] overflow-hidden bg-neutral-950 text-white flex items-end pb-12 sm:pb-16 md:pb-20">
+      {/* 2. Stitch Hero Section — High-Contrast Compact Fashion Editorial */}
+      <section className="relative w-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] overflow-hidden bg-neutral-950 text-white flex items-center py-10 sm:py-14 md:py-16">
         <div className="absolute inset-0 z-0">
           <Image
             src={HERO_BG_IMAGE}
@@ -158,43 +158,42 @@ export default async function HomePage() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[center_35%] scale-100 transition-transform duration-1000"
+            className="object-cover object-[center_30%] scale-100 transition-transform duration-1000"
           />
           {/* Multi-layered editorial gradients for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/25 z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-[2]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent z-[2]" />
         </div>
 
         <Container size="xl" className="relative z-10 w-full">
-          <div className="max-w-2xl space-y-4 sm:space-y-6">
+          <div className="max-w-2xl space-y-3 sm:space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-black/60 border border-white/20 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-md">
               <MaterialIcon name="auto_awesome" size="xs" className="text-stitch-accent" />
-              <span>NEW COLLECTION 2024 / 2025</span>
+              <span>NEW COLLECTION 2026 / 2027</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight leading-[0.9] text-white drop-shadow-md">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[0.95] text-white drop-shadow-md">
               NEW SEASON.<br />
               <span>NEW ENERGY.</span>
             </h1>
 
-            <p className="text-sm sm:text-base md:text-lg text-neutral-200 font-normal leading-relaxed max-w-lg drop-shadow">
+            <p className="text-xs sm:text-sm md:text-base text-neutral-200 font-normal leading-relaxed max-w-lg drop-shadow">
               Discover everyday styles made for you. Trending silhouettes, breathable fabrics, and uncompromised value.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <Link href="/categories/women" className="w-full sm:w-auto">
                 <Button
-                  size="lg"
-                  className="w-full sm:w-auto bg-white text-black hover:bg-neutral-200 font-bold uppercase tracking-wider px-8 shadow-xl"
+                  size="md"
+                  className="w-full sm:w-auto bg-white text-black hover:bg-neutral-200 border-2 border-white font-black uppercase tracking-wider px-8 h-12 shadow-xl transition-all"
                 >
                   SHOP WOMEN
                 </Button>
               </Link>
               <Link href="/categories/men" className="w-full sm:w-auto">
                 <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-black font-bold uppercase tracking-wider px-8 backdrop-blur-sm"
+                  size="md"
+                  className="w-full sm:w-auto bg-neutral-950 text-white hover:bg-white hover:text-black border-2 border-white font-black uppercase tracking-wider px-8 h-12 shadow-xl transition-all"
                 >
                   SHOP MEN
                 </Button>
