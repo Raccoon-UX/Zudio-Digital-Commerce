@@ -73,9 +73,6 @@ export const Footer: React.FC = () => {
             <div className="md:col-span-4 space-y-4">
               <Link href="/" className="inline-flex items-center gap-2">
                 <ZudioLogo variant="light" className="w-[104px] h-auto text-white" />
-                <span className="text-[9px] tracking-widest uppercase bg-neutral-800 text-neutral-300 px-1.5 py-0.5 border border-neutral-700 rounded-sm">
-                  PILOT
-                </span>
               </Link>
               <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
                 Effortless style for everyday life. Shop the latest trends in high-street fashion with uncompromised quality and unbeatable value.

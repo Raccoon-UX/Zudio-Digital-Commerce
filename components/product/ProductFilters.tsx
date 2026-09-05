@@ -19,6 +19,7 @@ interface ProductFiltersProps {
   onFilterChange: (newFilters: FilterState) => void;
   categories?: { name: string; slug: string }[];
   totalProducts?: number;
+  children?: React.ReactNode;
 }
 
 const AVAILABLE_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "UK 7", "UK 8", "UK 9", "UK 10"];
@@ -58,6 +59,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     { name: "Footwear", slug: "footwear" },
   ],
   totalProducts,
+  children,
 }) => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isSortModalOpen, setIsSortModalOpen] = useState(false);
@@ -249,8 +251,83 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     </div>
   );
 
+  const desktopToolbar = (
+    <div className="hidden lg:flex items-center justify-between pb-3 mb-6 border-b border-stitch-border gap-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
+          {totalProducts !== undefined ? (
+            <>Showing <strong className="text-stitch-primary font-bold">{totalProducts}</strong> Products</>
+          ) : null}
+        </span>
+
+        {/* Active filter chips */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {filters.category && filters.category !== "all" && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                {filters.category}
+                <button type="button" onClick={() => handleCategorySelect("all")} className="hover:text-stitch-error">
+                  <MaterialIcon name="close" size="xs" />
+                </button>
+              </span>
+            )}
+            {filters.sizes.map((s) => (
+              <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                Size: {s}
+                <button type="button" onClick={() => handleSizeToggle(s)} className="hover:text-stitch-error">
+                  <MaterialIcon name="close" size="xs" />
+                </button>
+              </span>
+            ))}
+            {filters.colors.map((c) => (
+              <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
+                {c}
+                <button type="button" onClick={() => handleColorToggle(c)} className="hover:text-stitch-error">
+                  <MaterialIcon name="close" size="xs" />
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-[10px] font-bold text-stitch-secondary-text hover:text-stitch-primary uppercase underline ml-1"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sort Dropdown */}
+      <div className="flex items-center gap-2 shrink-0">
+        <label htmlFor="desktop-sort-select" className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
+          Sort by:
+        </label>
+        <div className="relative">
+          <select
+            id="desktop-sort-select"
+            value={filters.sort}
+            onChange={(e) => handleSortChange(e.target.value as FilterState["sort"])}
+            className="appearance-none bg-stitch-surface-base border border-stitch-border text-xs font-bold uppercase tracking-wider py-1.5 pl-3 pr-8 rounded-sm text-stitch-primary focus:outline-none focus:border-stitch-primary cursor-pointer"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <MaterialIcon
+            name="sort"
+            size="xs"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-stitch-secondary-text pointer-events-none"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <>
+    <div className="w-full">
       {/* 1. Mobile Sticky Filter/Sort Bar (Exact Stitch PLP layout) */}
       <div className="lg:hidden sticky top-16 z-30 bg-stitch-surface-base border-y border-stitch-border flex items-center mb-4">
         <button
@@ -277,84 +354,19 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
         </button>
       </div>
 
-      {/* 2. Desktop Toolbar (Count, Active Chips, Sort Selector) */}
-      <div className="hidden lg:flex items-center justify-between py-3 mb-6 border-b border-stitch-border gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
-            {totalProducts !== undefined ? (
-              <>Showing <strong className="text-stitch-primary font-bold">{totalProducts}</strong> Products</>
-            ) : null}
-          </span>
+      {/* 2. Main 2-Column Desktop Grid Layout */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left Sticky Sidebar (Desktop only) */}
+        <aside className="hidden lg:block w-60 xl:w-64 shrink-0 pr-6 border-r border-stitch-border">
+          <div className="sticky top-24">{filterContent}</div>
+        </aside>
 
-          {/* Active filter chips */}
-          {activeFilterCount > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {filters.category && filters.category !== "all" && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
-                  {filters.category}
-                  <button type="button" onClick={() => handleCategorySelect("all")} className="hover:text-stitch-error">
-                    <MaterialIcon name="close" size="xs" />
-                  </button>
-                </span>
-              )}
-              {filters.sizes.map((s) => (
-                <span key={s} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
-                  Size: {s}
-                  <button type="button" onClick={() => handleSizeToggle(s)} className="hover:text-stitch-error">
-                    <MaterialIcon name="close" size="xs" />
-                  </button>
-                </span>
-              ))}
-              {filters.colors.map((c) => (
-                <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 bg-stitch-surface-container text-[10px] font-bold uppercase tracking-wider text-stitch-primary rounded-sm">
-                  {c}
-                  <button type="button" onClick={() => handleColorToggle(c)} className="hover:text-stitch-error">
-                    <MaterialIcon name="close" size="xs" />
-                  </button>
-                </span>
-              ))}
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-[10px] font-bold text-stitch-secondary-text hover:text-stitch-primary uppercase underline ml-1"
-              >
-                Clear All
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Sort Dropdown */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="desktop-sort-select" className="text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
-            Sort by:
-          </label>
-          <div className="relative">
-            <select
-              id="desktop-sort-select"
-              value={filters.sort}
-              onChange={(e) => handleSortChange(e.target.value as FilterState["sort"])}
-              className="appearance-none bg-stitch-surface-base border border-stitch-border text-xs font-bold uppercase tracking-wider py-1.5 pl-3 pr-8 rounded-sm text-stitch-primary focus:outline-none focus:border-stitch-primary cursor-pointer"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <MaterialIcon
-              name="sort"
-              size="xs"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-stitch-secondary-text pointer-events-none"
-            />
-          </div>
+        {/* Right Content Area (Product Grid + Top Toolbar) */}
+        <div className="flex-1 min-w-0">
+          {desktopToolbar}
+          {children}
         </div>
       </div>
-
-      {/* 3. Desktop Sticky Sidebar */}
-      <aside className="hidden lg:block w-64 shrink-0 pr-6 border-r border-stitch-border">
-        <div className="sticky top-28">{filterContent}</div>
-      </aside>
 
       {/* 4. Mobile Slide-over Filter Drawer */}
       {isFilterDrawerOpen && (
@@ -448,7 +460,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

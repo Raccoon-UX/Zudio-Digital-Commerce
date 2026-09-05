@@ -144,10 +144,10 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
       : null;
 
   return (
-    <div className="py-6 sm:py-8 md:py-10 bg-stitch-surface-base min-h-screen text-stitch-primary">
+    <div className="pt-3 sm:pt-6 md:pt-8 pb-24 sm:pb-28 bg-stitch-surface-base min-h-screen text-stitch-primary">
       <Container size="xl">
         {/* 1. Stitch Breadcrumb Navigation */}
-        <nav className="mb-4 sm:mb-6" aria-label="Breadcrumb">
+        <nav className="mb-3 sm:mb-4" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-stitch-secondary-text">
             <li>
               <Link href="/" className="hover:text-stitch-primary transition-colors">
@@ -182,7 +182,30 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
           </ol>
         </nav>
 
-        {/* 2. Main Product Layout (Gallery on Left, Buy Box on Right) */}
+        {/* 2. Top Aesthetic Editorial Strip */}
+        <div className="mb-6 bg-stitch-surface-container/60 border border-stitch-border px-3.5 py-2.5 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="bg-stitch-primary text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm shrink-0">
+              NEW DROP
+            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
+              Trending Silhouettes &amp; Everyday Style
+            </span>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-stitch-secondary-text">
+            <span className="flex items-center gap-1">
+              <MaterialIcon name="local_shipping" size="xs" className="text-stitch-primary" />
+              Standard Delivery
+            </span>
+            <span className="text-stitch-border hidden sm:inline">•</span>
+            <span className="flex items-center gap-1">
+              <MaterialIcon name="sync" size="xs" className="text-stitch-primary" />
+              15-Day Easy Returns
+            </span>
+          </div>
+        </div>
+
+        {/* 3. Main Product Layout (Gallery on Left, Buy Box on Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-7">
@@ -326,7 +349,7 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
                   </span>
                 </div>
                 <Badge variant="accent" className="text-[9px]">
-                  Pilot Feature
+                  Omnichannel
                 </Badge>
               </div>
               <p className="text-xs text-stitch-secondary-text leading-relaxed">
@@ -344,32 +367,35 @@ export const ProductDetailClient: React.FC<ProductDetailClientProps> = ({
               </Button>
             </div>
 
-            {/* 3. Product Accordions (Description, Fabric & Care, Delivery & Returns) */}
+            {/* 4. Product Accordions (Description, Fabric & Care, Delivery & Returns) */}
             <div className="border-t border-stitch-border pt-4">
               <Accordion type="single" collapsible defaultValue="desc">
                 {/* Description */}
                 <AccordionItem value="desc">
                   <AccordionTrigger>Product Description</AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-2 text-xs text-stitch-secondary-text leading-relaxed">
+                    <div className="space-y-3 text-xs text-stitch-secondary-text leading-relaxed">
                       <p>{product.description}</p>
                       {product.details && Object.keys(product.details).length > 0 && (
                         <div className="pt-2">
-                          <p className="font-bold text-stitch-primary uppercase tracking-wider mb-1.5">
-                            Specifications:
+                          <p className="font-bold text-stitch-primary uppercase tracking-wider text-xs mb-2">
+                            Specifications
                           </p>
-                          <dl className="grid grid-cols-2 gap-2 bg-stitch-surface-container/40 p-2.5 rounded-sm border border-stitch-border">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 bg-stitch-surface-container/30 p-3 sm:p-3.5 rounded-sm border border-stitch-border">
                             {Object.entries(product.details).map(([k, v]) => (
-                              <div key={k}>
-                                <dt className="text-stitch-secondary-text uppercase text-[9px] font-bold">
+                              <div
+                                key={k}
+                                className="flex items-center justify-between border-b border-stitch-border/40 pb-1.5 text-xs gap-3 min-w-0"
+                              >
+                                <span className="text-stitch-secondary-text uppercase text-[10px] font-bold tracking-wider shrink-0">
                                   {k}
-                                </dt>
-                                <dd className="font-semibold text-stitch-primary capitalize text-xs">
+                                </span>
+                                <span className="font-semibold text-stitch-primary text-right capitalize truncate">
                                   {String(v)}
-                                </dd>
+                                </span>
                               </div>
                             ))}
-                          </dl>
+                          </div>
                         </div>
                       )}
                     </div>

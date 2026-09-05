@@ -79,9 +79,6 @@ export const Header: React.FC = () => {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group" aria-label="Zudio Home">
             <ZudioLogo className="w-[88px] sm:w-[96px] h-auto text-stitch-primary" />
-            <span className="text-[8px] sm:text-[9px] tracking-[0.2em] font-bold uppercase bg-stitch-muted text-stitch-secondaryText px-1.5 py-0.5 border border-stitch-border hidden sm:inline-block rounded-sm">
-              Pilot
-            </span>
           </Link>
 
           {/* Desktop Navigation Links */}

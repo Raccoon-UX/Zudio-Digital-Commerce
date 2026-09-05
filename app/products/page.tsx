@@ -145,73 +145,67 @@ function ProductsContent() {
         </div>
 
         {/* 3. Main Grid + Filter Layout */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters (Sidebar on desktop / Trigger on mobile) */}
-          <ProductFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            totalProducts={total}
-          />
-
-          {/* Catalog Content Area */}
-          <div className="flex-1">
-            {error ? (
-              <div className="p-6 bg-stitch-surface-container border border-stitch-error/30 text-stitch-error text-xs flex items-center gap-3 rounded-sm">
-                <MaterialIcon name="error" size="md" className="shrink-0" />
-                <div>
-                  <p className="font-bold uppercase tracking-wider">Error loading catalog</p>
-                  <p className="mt-0.5">{error}</p>
-                </div>
+        <ProductFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          totalProducts={total}
+        >
+          {error ? (
+            <div className="p-6 bg-stitch-surface-container border border-stitch-error/30 text-stitch-error text-xs flex items-center gap-3 rounded-sm">
+              <MaterialIcon name="error" size="md" className="shrink-0" />
+              <div>
+                <p className="font-bold uppercase tracking-wider">Error loading catalog</p>
+                <p className="mt-0.5">{error}</p>
               </div>
-            ) : (
-              <>
-                <ProductGrid
-                  products={products}
-                  isLoading={isLoading}
-                  onClearFilters={() =>
-                    handleFilterChange({
-                      category: undefined,
-                      minPrice: undefined,
-                      maxPrice: undefined,
-                      sizes: [],
-                      colors: [],
-                      sort: "featured",
-                    })
-                  }
-                />
+            </div>
+          ) : (
+            <>
+              <ProductGrid
+                products={products}
+                isLoading={isLoading}
+                onClearFilters={() =>
+                  handleFilterChange({
+                    category: undefined,
+                    minPrice: undefined,
+                    maxPrice: undefined,
+                    sizes: [],
+                    colors: [],
+                    sort: "featured",
+                  })
+                }
+              />
 
-                {/* 4. Stitch Styled Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-stitch-border">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page <= 1}
-                      onClick={() => handlePageChange(page - 1)}
-                      className="text-xs font-bold uppercase tracking-wider"
-                    >
-                      <MaterialIcon name="chevron_left" size="xs" className="mr-1" />
-                      Previous
-                    </Button>
-                    <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
-                      Page {page} of {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={page >= totalPages}
-                      onClick={() => handlePageChange(page + 1)}
-                      className="text-xs font-bold uppercase tracking-wider"
-                    >
-                      Next
-                      <MaterialIcon name="chevron_right" size="xs" className="ml-1" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+              {/* 4. Stitch Styled Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-stitch-border">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => handlePageChange(page - 1)}
+                    className="text-xs font-bold uppercase tracking-wider"
+                  >
+                    <MaterialIcon name="chevron_left" size="xs" className="mr-1" />
+                    Previous
+                  </Button>
+                  <span className="text-xs font-bold uppercase tracking-wider text-stitch-primary">
+                    Page {page} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages}
+                    onClick={() => handlePageChange(page + 1)}
+                    className="text-xs font-bold uppercase tracking-wider"
+                  >
+                    Next
+                    <MaterialIcon name="chevron_right" size="xs" className="ml-1" />
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </ProductFilters>
       </Container>
     </div>
   );

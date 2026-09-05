@@ -341,103 +341,99 @@ function SearchContent() {
             </div>
 
             {/* Filters and Results Grid */}
-            <div className="flex flex-col lg:flex-row gap-8">
-              <ProductFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                totalProducts={total}
-              />
-
-              <div className="flex-1">
-                {error ? (
-                  <div className="p-6 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-3 rounded">
-                    <MaterialIcon name="error" size="md" className="text-rose-600 shrink-0" />
-                    <div>
-                      <p className="font-bold uppercase tracking-wide">Search Error</p>
-                      <p className="text-rose-600 mt-0.5">{error}</p>
-                    </div>
+            <ProductFilters
+              filters={filters}
+              onFilterChange={setFilters}
+              totalProducts={total}
+            >
+              {error ? (
+                <div className="p-6 bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-3 rounded">
+                  <MaterialIcon name="error" size="md" className="text-rose-600 shrink-0" />
+                  <div>
+                    <p className="font-bold uppercase tracking-wide">Search Error</p>
+                    <p className="text-rose-600 mt-0.5">{error}</p>
                   </div>
-                ) : !isLoading && products.length === 0 ? (
-                  /* Empty Search Results State */
-                  <div className="text-center py-16 px-4 bg-stitch-surface-container/30 border border-stitch-border rounded-lg">
-                    <div className="w-16 h-16 bg-stitch-surface-container border border-stitch-border rounded-full flex items-center justify-center mx-auto mb-4 text-stitch-secondary-text">
-                      <MaterialIcon name="search_off" size="xl" />
+                </div>
+              ) : !isLoading && products.length === 0 ? (
+                /* Empty Search Results State */
+                <div className="text-center py-16 px-4 bg-stitch-surface-container/30 border border-stitch-border rounded-lg">
+                  <div className="w-16 h-16 bg-stitch-surface-container border border-stitch-border rounded-full flex items-center justify-center mx-auto mb-4 text-stitch-secondary-text">
+                    <MaterialIcon name="search_off" size="xl" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight text-stitch-primary mb-2">
+                    No results found for &ldquo;{query}&rdquo;
+                  </h3>
+                  <p className="text-xs sm:text-sm text-stitch-secondary-text max-w-md mx-auto mb-6">
+                    Check your spelling, try broader keywords, or clear active filters to discover other pieces.
+                  </p>
+
+                  {/* Filter Reset Button */}
+                  {(filters.category ||
+                    filters.minPrice !== undefined ||
+                    filters.maxPrice !== undefined ||
+                    filters.sizes.length > 0 ||
+                    filters.colors.length > 0) && (
+                    <div className="mb-8">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setFilters({
+                            category: undefined,
+                            minPrice: undefined,
+                            maxPrice: undefined,
+                            sizes: [],
+                            colors: [],
+                            sort: "featured",
+                          })
+                        }
+                      >
+                        Clear All Filters
+                      </Button>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight text-stitch-primary mb-2">
-                      No results found for &ldquo;{query}&rdquo;
-                    </h3>
-                    <p className="text-xs sm:text-sm text-stitch-secondary-text max-w-md mx-auto mb-6">
-                      Check your spelling, try broader keywords, or clear active filters to discover other pieces.
+                  )}
+
+                  {/* Popular search recovery pills */}
+                  <div className="pt-6 border-t border-stitch-border max-w-lg mx-auto">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-stitch-secondary-text mb-3">
+                      Or browse popular categories:
                     </p>
-
-                    {/* Filter Reset Button */}
-                    {(filters.category ||
-                      filters.minPrice !== undefined ||
-                      filters.maxPrice !== undefined ||
-                      filters.sizes.length > 0 ||
-                      filters.colors.length > 0) && (
-                      <div className="mb-8">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() =>
-                            setFilters({
-                              category: undefined,
-                              minPrice: undefined,
-                              maxPrice: undefined,
-                              sizes: [],
-                              colors: [],
-                              sort: "featured",
-                            })
-                          }
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {POPULAR_SEARCHES.slice(0, 5).map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => {
+                            setInputVal(term);
+                            handleExecuteSearch(term);
+                          }}
+                          className="px-3.5 py-1.5 border border-stitch-border bg-white rounded-full text-xs font-bold uppercase tracking-wider text-stitch-primary hover:border-stitch-primary hover:bg-stitch-primary hover:text-white transition-colors"
                         >
-                          Clear All Filters
-                        </Button>
-                      </div>
-                    )}
-
-                    {/* Popular search recovery pills */}
-                    <div className="pt-6 border-t border-stitch-border max-w-lg mx-auto">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-stitch-secondary-text mb-3">
-                        Or browse popular categories:
-                      </p>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        {POPULAR_SEARCHES.slice(0, 5).map((term) => (
-                          <button
-                            key={term}
-                            type="button"
-                            onClick={() => {
-                              setInputVal(term);
-                              handleExecuteSearch(term);
-                            }}
-                            className="px-3 py-1.5 border border-stitch-border bg-white rounded-full text-xs font-bold uppercase tracking-wider text-stitch-primary hover:border-stitch-primary hover:bg-stitch-primary hover:text-white transition-colors"
-                          >
-                            {term}
-                          </button>
-                        ))}
-                      </div>
+                          {term}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                ) : (
-                  <ProductGrid
-                    products={products}
-                    isLoading={isLoading}
-                    emptyTitle={`No results found for "${query}"`}
-                    emptyDescription="Check your spelling, try more general keywords, or clear filter criteria."
-                    onClearFilters={() =>
-                      setFilters({
-                        category: undefined,
-                        minPrice: undefined,
-                        maxPrice: undefined,
-                        sizes: [],
-                        colors: [],
-                        sort: "featured",
-                      })
-                    }
-                  />
-                )}
-              </div>
-            </div>
+                </div>
+              ) : (
+                <ProductGrid
+                  products={products}
+                  isLoading={isLoading}
+                  emptyTitle={`No results found for "${query}"`}
+                  emptyDescription="Check your spelling, try more general keywords, or clear filter criteria."
+                  onClearFilters={() =>
+                    setFilters({
+                      category: undefined,
+                      minPrice: undefined,
+                      maxPrice: undefined,
+                      sizes: [],
+                      colors: [],
+                      sort: "featured",
+                    })
+                  }
+                />
+              )}
+            </ProductFilters>
           </div>
         )}
       </Container>
