@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { ZudioWordmark } from "@/components/ui/ZudioWordmark";
 
 export const WebsiteLoader: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -50,8 +51,8 @@ export const WebsiteLoader: React.FC = () => {
       aria-hidden={isCompleted}
     >
       {/* 1. Subtle Watermark in Background */}
-      <div className="absolute inset-x-0 bottom-[-4vw] flex justify-center pointer-events-none z-0 opacity-40 select-none">
-        <span className="text-[18vw] font-black uppercase tracking-tighter text-neutral-200/80 leading-none">
+      <div className="absolute inset-x-0 bottom-[-4vw] flex justify-center pointer-events-none z-0 opacity-30 select-none">
+        <span className="text-[18vw] font-black uppercase tracking-tighter text-neutral-200/80 leading-none font-['Michroma','Unbounded',sans-serif]">
           ZUDIO
         </span>
       </div>
@@ -67,9 +68,7 @@ export const WebsiteLoader: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <div className="absolute top-8 left-6">
-            <span className="text-2xl font-black tracking-tight text-white uppercase italic">
-              zudio
-            </span>
+            <ZudioWordmark size="sm" variant="light" className="h-6 w-auto opacity-90" />
           </div>
           <div className="absolute bottom-8 left-6 right-6">
             <p className="text-xl font-black uppercase tracking-tight text-white leading-tight">
@@ -130,15 +129,13 @@ export const WebsiteLoader: React.FC = () => {
 
       {/* 5. Center Section — Logo, Tagline, Animated Progress Bar */}
       <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 -mt-4">
-        {/* Modern Geometric Zudio Logo */}
-        <div className="flex items-center justify-center">
-          <span className="text-5xl sm:text-7xl font-black tracking-[-0.04em] text-neutral-950 font-sans lowercase select-none">
-            zudio
-          </span>
+        {/* Official Geometric Zudio Wordmark */}
+        <div className="flex items-center justify-center mb-1">
+          <ZudioWordmark size="xl" variant="dark" className="h-12 sm:h-16 md:h-20 w-auto" />
         </div>
 
         {/* Brand Tagline */}
-        <p className="text-[11px] sm:text-xs md:text-sm font-bold tracking-[0.38em] text-neutral-800 uppercase mt-2.5 sm:mt-3">
+        <p className="text-[11px] sm:text-xs md:text-sm font-bold tracking-[0.38em] text-neutral-800 uppercase mt-2 sm:mt-3">
           GOOD FASHION &nbsp;•&nbsp; BRIGHTER DAYS
         </p>
 

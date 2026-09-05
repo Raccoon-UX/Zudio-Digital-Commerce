@@ -204,7 +204,7 @@ export default async function HomePage() {
       </section>
 
       {/* 3. Shop by Category Bento Grid (Stitch Specification) */}
-      <section className="py-12 sm:py-16 md:py-20 bg-stitch-surface-base">
+      <section className="pt-4 sm:pt-6 md:pt-8 pb-10 sm:pb-14 md:pb-16 bg-stitch-surface-base">
         <Container size="xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
             <div>
