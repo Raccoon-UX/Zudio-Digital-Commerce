@@ -16,10 +16,19 @@ if (dbUrl && !process.env.DATABASE_URL) {
   process.env.DATABASE_URL = dbUrl;
 }
 
+function getOptimizedDbUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (url.includes("connection_limit=")) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}connection_limit=5&pool_timeout=20`;
+}
+
+const optimizedUrl = getOptimizedDbUrl(dbUrl);
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    datasources: dbUrl ? { db: { url: dbUrl } } : undefined,
+    datasources: optimizedUrl ? { db: { url: optimizedUrl } } : undefined,
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]

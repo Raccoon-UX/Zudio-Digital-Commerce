@@ -15,7 +15,9 @@ export async function GET(
       return apiError("PRODUCT_NOT_FOUND", "Product not found.", 404);
     }
 
-    return apiSuccess(product);
+    return apiSuccess(product, 200, undefined, {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+    });
   } catch (error) {
     if (error instanceof AppError) {
       return apiError(error.code, error.message, error.statusCode);

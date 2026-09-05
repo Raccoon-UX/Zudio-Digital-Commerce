@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
       getStoreCities(),
     ]);
 
-    return apiSuccess({ stores, cities });
+    return apiSuccess(
+      { stores, cities },
+      200,
+      undefined,
+      {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      }
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return apiError(error.code, error.message, error.statusCode);

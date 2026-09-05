@@ -48,7 +48,13 @@ export class AppError extends Error {
   }
 }
 
-export function apiError(code: ErrorCode, message: string, statusCode = 400, details?: unknown) {
+export function apiError(
+  code: ErrorCode,
+  message: string,
+  statusCode = 400,
+  details?: unknown,
+  headers?: HeadersInit
+) {
   return NextResponse.json<ApiErrorResponse>(
     {
       success: false,
@@ -58,17 +64,22 @@ export function apiError(code: ErrorCode, message: string, statusCode = 400, det
         details,
       },
     },
-    { status: statusCode }
+    { status: statusCode, headers }
   );
 }
 
-export function apiSuccess<T>(data: T, statusCode = 200, meta?: Record<string, unknown>) {
+export function apiSuccess<T>(
+  data: T,
+  statusCode = 200,
+  meta?: Record<string, unknown>,
+  headers?: HeadersInit
+) {
   return NextResponse.json<ApiSuccessResponse<T>>(
     {
       success: true,
       data,
       meta,
     },
-    { status: statusCode }
+    { status: statusCode, headers }
   );
 }

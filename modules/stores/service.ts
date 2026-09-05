@@ -6,6 +6,7 @@ import {
   StoreStockAvailabilityDTO,
   StoreInventoryItemDTO,
 } from "./types";
+import { memoryCache } from "@/lib/cache";
 
 /**
  * Calculates great-circle distance between two coordinate pairs in kilometers using the Haversine formula.
@@ -43,6 +44,15 @@ export async function getStores(filters?: {
   userLat?: number;
   userLng?: number;
 }): Promise<StoreDTO[]> {
+  const isStaticQuery = !filters?.userLat && !filters?.userLng;
+  const cacheKey = isStaticQuery
+    ? `stores:list:${(filters?.city || "").toLowerCase()}:${(filters?.state || "").toLowerCase()}:${(filters?.pincode || "").toLowerCase()}:${(filters?.search || "").toLowerCase()}`
+    : null;
+
+  if (cacheKey) {
+    const cached = memoryCache.get<StoreDTO[]>(cacheKey);
+    if (cached) return cached;
+  }
   const where: any = { isActive: true };
 
   if (filters?.city) {
@@ -104,6 +114,8 @@ export async function getStores(filters?: {
   // Sort by distance if user coords are present
   if (filters?.userLat && filters?.userLng) {
     mapped.sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999));
+  } else if (cacheKey) {
+    memoryCache.set(cacheKey, mapped, 300);
   }
 
   return mapped;

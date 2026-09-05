@@ -1,4 +1,4 @@
-import React from "react";
+import React, { cache } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
@@ -6,7 +6,6 @@ import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { getProductByIdOrSlug, getProducts } from "@/modules/products/service";
 import { ProductDetailClient } from "@/components/product/ProductDetailClient";
 import { Metadata } from "next";
-
 import { ProductCardDTO } from "@/modules/products/types";
 
 interface PageProps {
@@ -15,10 +14,26 @@ interface PageProps {
   };
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120; // ISR cache on Edge for 120 seconds
+export const dynamicParams = true;
+
+// Pre-render on demand with ISR to prevent exhausting DB connection pool during build
+export function generateStaticParams() {
+  return [];
+}
+
+// Deduplicate product lookup between generateMetadata and ProductDetailPage
+const getCachedProduct = cache(async (idOrSlug: string) => {
+  try {
+    return await getProductByIdOrSlug(idOrSlug);
+  } catch (err) {
+    console.error("Error loading product for PDP:", err);
+    return null;
+  }
+});
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const product = await getProductByIdOrSlug(params.id);
+  const product = await getCachedProduct(params.id);
   if (!product) {
     return { title: "Product Not Found | Zudio" };
   }
@@ -29,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const product = await getProductByIdOrSlug(params.id);
+  const product = await getCachedProduct(params.id);
 
   if (!product) {
     return (
@@ -70,4 +85,3 @@ export default async function ProductDetailPage({ params }: PageProps) {
     />
   );
 }
-

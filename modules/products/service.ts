@@ -8,6 +8,7 @@ import {
 } from "./types";
 import { Prisma } from "@prisma/client";
 import { getCuratedFashionImages } from "@/lib/fashion-images";
+import { memoryCache, buildProductCacheKey } from "@/lib/cache";
 
 export async function getProducts(
   params: ProductQueryParams = {}
@@ -23,6 +24,13 @@ export async function getProducts(
     page = 1,
     limit = 12,
   } = params;
+
+  // 1. Check in-memory TTL cache
+  const cacheKey = buildProductCacheKey(params);
+  const cached = memoryCache.get<PaginatedProductsDTO>(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
   try {
     // Build Prisma `where` clause
@@ -98,7 +106,7 @@ export async function getProducts(
 
     const skip = (page - 1) * limit;
 
-    // Execute count and query in parallel
+    // Execute count and query in parallel with optimized image projection
     const [total, products] = await Promise.all([
       prisma.product.count({ where }),
       prisma.product.findMany({
@@ -113,6 +121,7 @@ export async function getProducts(
           images: {
             select: { id: true, url: true, altText: true, isPrimary: true, sortOrder: true },
             orderBy: { sortOrder: "asc" },
+            take: 2, // Only primary and hover images needed for card rendering
           },
           variants: {
             where: { isActive: true },
@@ -189,13 +198,18 @@ export async function getProducts(
       mappedProducts.sort((a, b) => b.price - a.price);
     }
 
-    return {
+    const response: PaginatedProductsDTO = {
       products: mappedProducts,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit) || 1,
     };
+
+    // Cache the verified response (60s TTL)
+    memoryCache.set(cacheKey, response, 60);
+
+    return response;
   } catch (error) {
     console.error("Error fetching products:", error);
     throw new AppError(
@@ -208,6 +222,14 @@ export async function getProducts(
 }
 
 export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDetailDTO | null> {
+  const cleanKey = idOrSlug.trim().toLowerCase();
+  const cacheKey = `pdp:${cleanKey}`;
+
+  const cached = memoryCache.get<ProductDetailDTO>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const isCuid = idOrSlug.startsWith("c") && idOrSlug.length > 20;
 
@@ -292,7 +314,7 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
           { id: "img-2", url: curated.secondary, altText: `${product.name} Alternate View`, isPrimary: false, sortOrder: 1 },
         ];
 
-    return {
+    const detail: ProductDetailDTO = {
       id: product.id,
       name: product.name,
       slug: product.slug,
@@ -308,6 +330,12 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
       allSizes: sortedSizes,
       allColors: colorsList,
     };
+
+    // Cache under both id and slug (120s TTL)
+    memoryCache.set(`pdp:${product.id.toLowerCase()}`, detail, 120);
+    memoryCache.set(`pdp:${product.slug.toLowerCase()}`, detail, 120);
+
+    return detail;
   } catch (error) {
     console.error(`Error fetching product ${idOrSlug}:`, error);
     throw new AppError(
@@ -320,11 +348,28 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
 }
 
 export async function getFeaturedProducts(limit = 4): Promise<ProductCardDTO[]> {
+  const cacheKey = `featured_products:${limit}`;
+  const cached = memoryCache.get<ProductCardDTO[]>(cacheKey);
+  if (cached) return cached;
+
   const result = await getProducts({ sort: "featured", limit });
+  memoryCache.set(cacheKey, result.products, 120);
   return result.products;
 }
 
 export async function getNewArrivals(limit = 4): Promise<ProductCardDTO[]> {
+  const cacheKey = `new_arrivals:${limit}`;
+  const cached = memoryCache.get<ProductCardDTO[]>(cacheKey);
+  if (cached) return cached;
+
   const result = await getProducts({ sort: "newest", limit });
+  memoryCache.set(cacheKey, result.products, 120);
   return result.products;
+}
+
+export function invalidateProductCache(): void {
+  memoryCache.deletePattern("products:");
+  memoryCache.deletePattern("pdp:");
+  memoryCache.deletePattern("featured_products:");
+  memoryCache.deletePattern("new_arrivals:");
 }

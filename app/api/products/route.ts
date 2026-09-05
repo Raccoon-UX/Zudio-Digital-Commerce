@@ -36,12 +36,19 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
-    return apiSuccess(result.products, 200, {
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      totalPages: result.totalPages,
-    });
+    return apiSuccess(
+      result.products,
+      200,
+      {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+      {
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      }
+    );
   } catch (error) {
     if (error instanceof AppError) {
       return apiError(error.code, error.message, error.statusCode);

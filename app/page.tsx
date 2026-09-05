@@ -9,6 +9,8 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { getFeaturedProducts, getNewArrivals } from "@/modules/products/service";
 import { ProductCardDTO } from "@/modules/products/types";
 
+export const revalidate = 60; // ISR cache on Edge for 60 seconds
+
 // High-resolution Stitch-compliant editorial imagery
 const HERO_BG_IMAGE = "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&auto=format&fit=crop&q=85";
 

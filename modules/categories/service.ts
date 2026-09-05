@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma/client";
 import { AppError } from "@/lib/errors";
 import { CategoryDTO } from "./types";
+import { memoryCache } from "@/lib/cache";
 
 export async function getCategories(): Promise<CategoryDTO[]> {
+  const cacheKey = "categories:all";
+  const cached = memoryCache.get<CategoryDTO[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const categories = await prisma.category.findMany({
       where: {
@@ -26,7 +31,7 @@ export async function getCategories(): Promise<CategoryDTO[]> {
       orderBy: { sortOrder: "asc" },
     });
 
-    return categories.map((cat) => ({
+    const mapped: CategoryDTO[] = categories.map((cat) => ({
       id: cat.id,
       name: cat.name,
       slug: cat.slug,
@@ -46,6 +51,9 @@ export async function getCategories(): Promise<CategoryDTO[]> {
         productCount: child._count.products,
       })),
     }));
+
+    memoryCache.set(cacheKey, mapped, 300); // 5 min TTL
+    return mapped;
   } catch (error) {
     console.error("Error fetching categories:", error);
     throw new AppError(
@@ -58,9 +66,14 @@ export async function getCategories(): Promise<CategoryDTO[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryDTO | null> {
+  const cleanSlug = slug.trim().toLowerCase();
+  const cacheKey = `category:${cleanSlug}`;
+  const cached = memoryCache.get<CategoryDTO>(cacheKey);
+  if (cached) return cached;
+
   try {
     const category = await prisma.category.findUnique({
-      where: { slug },
+      where: { slug: cleanSlug },
       include: {
         children: {
           where: { isActive: true },
@@ -77,7 +90,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDTO | nul
 
     if (!category) return null;
 
-    return {
+    const mapped: CategoryDTO = {
       id: category.id,
       name: category.name,
       slug: category.slug,
@@ -97,6 +110,9 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDTO | nul
         productCount: child._count.products,
       })),
     };
+
+    memoryCache.set(cacheKey, mapped, 300);
+    return mapped;
   } catch (error) {
     console.error(`Error fetching category with slug ${slug}:`, error);
     throw new AppError(
@@ -106,4 +122,9 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryDTO | nul
       error
     );
   }
+}
+
+export function invalidateCategoryCache(): void {
+  memoryCache.deletePattern("categories:");
+  memoryCache.deletePattern("category:");
 }

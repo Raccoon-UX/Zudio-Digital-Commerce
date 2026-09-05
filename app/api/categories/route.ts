@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const categories = await getCategories();
-    return apiSuccess(categories);
+    return apiSuccess(categories, 200, undefined, {
+      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+    });
   } catch (error) {
     if (error instanceof AppError) {
       return apiError(error.code, error.message, error.statusCode);
