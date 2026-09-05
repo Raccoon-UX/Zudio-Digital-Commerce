@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -26,57 +27,80 @@ export const DemoQRModal: React.FC<DemoQRModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-sans">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 font-sans">
+      {/* Dark Dimmed Backdrop Overlay with Smooth Blur */}
+      <div
+        className="fixed inset-0 bg-black/65 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Modal Box */}
-      <div className="relative w-full max-w-md bg-stitch-surface-base border border-stitch-border p-6 sm:p-8 shadow-2xl z-10 animate-in zoom-in-95 text-center space-y-4 max-h-[90vh] overflow-y-auto rounded-lg">
-        <div className="flex items-center justify-between pb-3 border-b border-stitch-border">
-          <Badge variant="warning" className="text-[9px] font-bold">
+      {/* Clean Premium Solid White Modal Surface (Matches Stitch & Zudio Design) */}
+      <div className="relative w-full max-w-md bg-white border border-neutral-200 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 text-center space-y-4 max-h-[92vh] overflow-y-auto">
+        {/* Top Header Bar */}
+        <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+          <Badge
+            variant="warning"
+            className="text-[10px] font-bold px-2.5 py-0.5 bg-amber-50 text-amber-800 border border-amber-300 rounded-sm"
+          >
             DEMO QR — CONCEPT PROTOTYPE ONLY
           </Badge>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-stitch-secondary-text hover:text-stitch-primary transition-colors"
-            aria-label="Close"
+            className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors"
+            aria-label="Close modal"
           >
             <MaterialIcon name="close" size="sm" />
           </button>
         </div>
 
-        <div>
-          <h3 className="text-base font-black uppercase tracking-tight text-stitch-primary">
+        {/* Title & Order Summary */}
+        <div className="space-y-1 pt-1">
+          <h3 className="text-xl font-black uppercase tracking-tight text-neutral-900">
             UPI / QR Payment Guide
           </h3>
-          <p className="text-xs text-stitch-secondary-text mt-0.5">
-            Order #{orderNumber} · Total: <strong>{formatCurrency(amount)}</strong>
+          <p className="text-xs text-neutral-600">
+            Order <span className="font-mono font-bold text-neutral-800">#{orderNumber}</span> · Total:{" "}
+            <strong className="text-neutral-900 font-black text-sm">{formatCurrency(amount)}</strong>
           </p>
         </div>
 
-        {/* Visual Prototype QR Box */}
-        <div className="p-4 bg-stitch-surface-container/60 border border-stitch-border inline-block mx-auto space-y-2 rounded">
-          <div className="relative w-44 h-44 mx-auto bg-white p-2 border border-stitch-border flex items-center justify-center shadow-inner rounded">
-            <MaterialIcon name="qr_code_2" size="xl" className="text-stitch-primary text-7xl" />
+        {/* User's Exact Custom QR Code Preview Box */}
+        <div className="p-4 bg-neutral-50/90 border border-neutral-200/90 rounded-2xl inline-block mx-auto space-y-2.5 w-full max-w-[280px] shadow-xs">
+          <div className="relative w-52 h-52 mx-auto bg-white p-2 border border-neutral-200 rounded-xl flex items-center justify-center shadow-xs overflow-hidden">
+            <Image
+              src="/famAppQR.jpeg"
+              alt="UPI Payment QR Code"
+              width={200}
+              height={200}
+              className="w-full h-full object-contain rounded-lg"
+              priority
+            />
           </div>
-          <p className="text-[10px] uppercase tracking-wider font-bold text-stitch-secondary-text">
-            Scan with any UPI App (Demo Illustration)
-          </p>
+          <div className="space-y-0.5">
+            <p className="text-xs uppercase tracking-wider font-bold text-neutral-800">
+              Scan with any UPI App
+            </p>
+            <p className="text-[10px] uppercase tracking-wider font-bold text-neutral-500">
+              (Demo Illustration)
+            </p>
+          </div>
         </div>
 
-        {/* Prototype Disclaimer Banner */}
-        <div className="p-3 bg-amber-50 border border-amber-200 text-left text-[11px] text-amber-900 space-y-1 rounded">
-          <div className="flex items-center gap-1.5 font-bold">
+        {/* Prototype Notice Banner */}
+        <div className="p-3.5 bg-amber-50/90 border border-amber-200/90 text-left text-xs text-amber-950 space-y-1 rounded-xl">
+          <div className="flex items-center gap-1.5 font-bold text-amber-900">
             <MaterialIcon name="warning" size="xs" className="text-amber-700 shrink-0" />
-            <span>Prototype Notice</span>
+            <span className="text-[11px] uppercase tracking-wide">Prototype Notice</span>
           </div>
-          <p className="leading-normal text-amber-800">
-            This QR code is an illustrative prototype interface for Zudio Digital Commerce. To complete a verified test payment with cryptographic proof and inventory commitment, proceed to the <strong>Razorpay Test Gateway</strong>.
+          <p className="text-[11px] leading-relaxed text-amber-900/90">
+            This QR code is an illustrative prototype interface for Zudio Digital Commerce. To complete a verified test payment with cryptographic proof and inventory commitment, proceed to the <strong className="text-amber-950 font-bold">Razorpay Test Gateway</strong>.
           </p>
         </div>
 
-        <div className="pt-2 space-y-2">
+        {/* Action Buttons */}
+        <div className="pt-2 space-y-2.5">
           <Button
             variant="primary"
             size="md"
@@ -84,15 +108,26 @@ export const DemoQRModal: React.FC<DemoQRModalProps> = ({
               onClose();
               onProceedToGateway();
             }}
-            className="w-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5"
+            className="w-full h-12 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-[#1A1A1A] hover:bg-black text-white rounded-xl shadow-sm"
           >
             <MaterialIcon name="credit_card" size="xs" />
-            Proceed to Razorpay Test Gateway
+            <span>Proceed to Razorpay Test Gateway</span>
           </Button>
 
-          <Button variant="secondary" size="sm" onClick={onClose} className="w-full text-xs font-bold uppercase tracking-wider">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onClose}
+            className="w-full h-11 text-xs font-bold uppercase tracking-wider border border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400 text-neutral-800 rounded-xl"
+          >
             Close
           </Button>
+        </div>
+
+        {/* Security / Test Environment Footer Badge */}
+        <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-500 pt-1">
+          <MaterialIcon name="shield" size="xs" className="text-neutral-600" />
+          <span>This is a secure test environment. No real money will be charged.</span>
         </div>
       </div>
     </div>

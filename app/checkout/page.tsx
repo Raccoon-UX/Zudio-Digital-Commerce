@@ -673,30 +673,42 @@ export default function CheckoutPage() {
 
                 {/* Demo UPI / QR Option */}
                 <label
-                  className={`p-4 border rounded block cursor-pointer transition-colors ${
+                  className={`p-4 border rounded-lg block cursor-pointer transition-all ${
                     paymentChoice === "DEMO_QR"
-                      ? "border-stitch-primary bg-stitch-surface-container/50"
-                      : "border-stitch-border hover:border-stitch-primary/50"
+                      ? "border-stitch-primary bg-stitch-surface-container/60 ring-1 ring-stitch-primary shadow-xs"
+                      : "border-stitch-border bg-white hover:border-neutral-400"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="paymentChoice"
-                        checked={paymentChoice === "DEMO_QR"}
-                        onChange={() => setPaymentChoice("DEMO_QR")}
-                        className="text-stitch-primary focus:ring-stitch-primary"
-                      />
-                      <span className="text-xs font-bold uppercase text-stitch-primary">
-                        Demo UPI / QR
-                      </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="paymentChoice"
+                          checked={paymentChoice === "DEMO_QR"}
+                          onChange={() => setPaymentChoice("DEMO_QR")}
+                          className="h-4 w-4 text-stitch-primary focus:ring-stitch-primary"
+                        />
+                        <span className="text-xs font-bold uppercase tracking-wide text-stitch-primary">
+                          Demo UPI / QR
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stitch-secondary-text mt-1.5 pl-6 leading-relaxed">
+                        Visual QR prototype with server-side test verification.
+                      </p>
                     </div>
-                    <MaterialIcon name="qr_code_2" size="sm" className="text-stitch-primary" />
+
+                    {/* QR Code Thumbnail Preview */}
+                    <div className="shrink-0 bg-white p-1 border border-neutral-200 rounded shadow-xs">
+                      <Image
+                        src="/famAppQR.jpeg"
+                        alt="Demo QR Preview"
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 object-contain rounded"
+                      />
+                    </div>
                   </div>
-                  <p className="text-[11px] text-stitch-secondary-text mt-2 pl-5">
-                    Visual QR prototype with server-side test verification.
-                  </p>
                 </label>
               </div>
 
@@ -789,9 +801,9 @@ export default function CheckoutPage() {
               variant="primary"
               size="lg"
               isLoading={isPlacingOrder}
-              className="w-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+              className="w-full h-14 py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md shadow-sm"
             >
-              <MaterialIcon name="lock" size="xs" />
+              <MaterialIcon name="lock" size="sm" />
               <span>Pay {formatCurrency(validation?.total || 0)}</span>
             </Button>
 
@@ -813,9 +825,9 @@ export default function CheckoutPage() {
               variant="primary"
               size="lg"
               isLoading={isPlacingOrder}
-              className="w-full text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+              className="w-full h-14 py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 rounded-md shadow-sm"
             >
-              <MaterialIcon name="lock" size="xs" />
+              <MaterialIcon name="lock" size="sm" />
               <span>Pay {formatCurrency(validation?.total || 0)}</span>
             </Button>
           </div>

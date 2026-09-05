@@ -44,7 +44,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const sizeStyles = {
       sm: "h-9 px-3.5 text-xs rounded",
       md: "h-12 px-6 text-xs tracking-wider rounded", // ~48px height per Stitch spec
-      lg: "h-13 px-8 text-sm tracking-wider rounded",
+      lg: "h-14 py-3.5 px-8 text-sm tracking-wider rounded-md", // ~56px height with robust vertical padding
       icon: "h-11 w-11 p-0 rounded",
     };
 

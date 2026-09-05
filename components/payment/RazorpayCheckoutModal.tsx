@@ -122,43 +122,44 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
   }, [orderData, onSuccess, onFailure, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-      <div className="bg-stitch-surface-base border border-stitch-border p-8 max-w-md w-full shadow-2xl text-center space-y-4 animate-in zoom-in-95 rounded-lg">
-        <div className="h-12 w-12 rounded-full bg-stitch-surface-container flex items-center justify-center mx-auto text-stitch-primary">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs font-sans">
+      <div className="bg-white border border-neutral-200 p-8 max-w-md w-full shadow-2xl text-center space-y-4 animate-in zoom-in-95 rounded-xl">
+        <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto text-neutral-900">
           <MaterialIcon name="lock" size="md" />
         </div>
 
         <div>
-          <h3 className="text-base font-black uppercase tracking-tight text-stitch-primary">
+          <h3 className="text-base font-black uppercase tracking-tight text-neutral-900">
             {isVerifying ? "Verifying Payment..." : "Launching Razorpay Gateway"}
           </h3>
-          <p className="text-xs text-stitch-secondary-text mt-1">
-            Order #{orderData.orderNumber} · Total: ₹{(orderData.amount / 100).toFixed(2)}
+          <p className="text-xs text-neutral-600 mt-1">
+            Order <span className="font-mono font-bold text-neutral-800">#{orderData.orderNumber}</span> · Total:{" "}
+            <strong className="text-neutral-900 font-bold">₹{(orderData.amount / 100).toFixed(2)}</strong>
           </p>
         </div>
 
         {isVerifying && (
           <div className="py-4 space-y-2">
-            <div className="animate-spin h-6 w-6 border-2 border-stitch-border border-t-stitch-primary rounded-full mx-auto" />
-            <p className="text-[11px] text-stitch-secondary-text">
+            <div className="animate-spin h-6 w-6 border-2 border-neutral-200 border-t-neutral-900 rounded-full mx-auto" />
+            <p className="text-[11px] text-neutral-600">
               Performing cryptographic HMAC verification and committing store inventory...
             </p>
           </div>
         )}
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 text-left rounded">
+          <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2 text-left rounded-lg">
             <MaterialIcon name="error" size="sm" className="text-rose-600 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="pt-4 border-t border-stitch-border flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1 text-[11px] text-stitch-secondary-text">
-            <MaterialIcon name="verified" size="xs" className="text-stitch-accent" />
+        <div className="pt-4 border-t border-neutral-100 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1 text-[11px] text-neutral-500">
+            <MaterialIcon name="verified" size="xs" className="text-emerald-600" />
             <span>Razorpay 256-bit SSL</span>
           </div>
-          <Button variant="secondary" size="sm" onClick={onClose} disabled={isVerifying}>
+          <Button variant="secondary" size="sm" onClick={onClose} disabled={isVerifying} className="border-neutral-300 text-neutral-700 hover:bg-neutral-50">
             Cancel
           </Button>
         </div>
