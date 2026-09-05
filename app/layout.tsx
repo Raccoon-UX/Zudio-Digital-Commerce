@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { WebsiteLoader } from "@/components/ui/WebsiteLoader";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -58,6 +59,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-white text-neutral-900 font-sans pb-16 md:pb-0">
+        <WebsiteLoader />
         <SessionProvider>
           <Header />
           <main className="flex-1">{children}</main>

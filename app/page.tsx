@@ -150,7 +150,7 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Stitch Hero Section — High-Contrast Compact Fashion Editorial */}
-      <section className="relative w-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] overflow-hidden bg-neutral-950 text-white flex items-center py-10 sm:py-14 md:py-16">
+      <section className="relative w-full min-h-[420px] sm:min-h-[480px] md:min-h-[520px] overflow-hidden bg-neutral-950 text-white flex items-end pb-8 sm:pb-10 md:pb-12 pt-14 sm:pt-20 md:pt-24">
         <div className="absolute inset-0 z-0">
           <Image
             src={HERO_BG_IMAGE}
@@ -166,7 +166,7 @@ export default async function HomePage() {
         </div>
 
         <Container size="xl" className="relative z-10 w-full">
-          <div className="max-w-2xl space-y-3 sm:space-y-4">
+          <div className="max-w-2xl space-y-3 sm:space-y-4 mt-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-black/60 border border-white/20 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-md">
               <MaterialIcon name="auto_awesome" size="xs" className="text-stitch-accent" />
               <span>NEW COLLECTION 2026 / 2027</span>
