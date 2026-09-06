@@ -12,7 +12,7 @@ import { APP_CONFIG } from "@/lib/constants";
 export const revalidate = 60; // ISR cache on Edge for 60 seconds
 
 // High-resolution editorial campaign background
-const HERO_BG_IMAGE = "/images/hero-reference.png";
+const HERO_BG_IMAGE = "/homepage.png";
 const HERO_FALLBACK_IMAGE = "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&auto=format&fit=crop&q=85";
 
 const SECONDARY_CATEGORY_PILLS = [
@@ -189,9 +189,9 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Major Editorial Hero Section (Split Composition matching Reference) */}
-      <section className="relative w-full overflow-hidden bg-[#D3CECA] text-neutral-900 border-b border-neutral-200">
-        <div className="relative min-h-[460px] sm:min-h-[520px] md:min-h-[580px] lg:min-h-[640px] flex items-center">
-          {/* Background Lifestyle Image & Warm Gradient */}
+      <section className="relative w-full overflow-hidden bg-[#D6D2CE] text-neutral-900 border-b border-neutral-200">
+        <div className="relative min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[660px] flex items-center">
+          {/* Background Lifestyle Image from public/homepage.png */}
           <div className="absolute inset-0 z-0">
             <Image
               src={HERO_BG_IMAGE}
@@ -199,25 +199,25 @@ export default async function HomePage() {
               fill
               priority
               sizes="100vw"
-              className="object-cover object-right md:object-center"
+              className="object-cover object-[center_right] md:object-right"
             />
-            {/* Subtle left-side legibility enhancement gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#D3CECA]/90 via-[#D3CECA]/50 to-transparent z-[1] md:hidden" />
+            {/* Soft gradient on small screens to ensure text legibility over models */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#D6D2CE]/95 via-[#D6D2CE]/70 to-transparent z-[1] md:hidden" />
           </div>
 
-          <Container size="xl" className="relative z-10 w-full py-10 sm:py-14 md:py-16">
+          <Container size="xl" className="relative z-10 w-full py-12 sm:py-16 md:py-20">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               {/* Left Editorial Content Block */}
               <div className="md:col-span-7 lg:col-span-6 space-y-4 sm:space-y-5">
                 {/* Eyebrow Label */}
-                <div className="inline-flex items-center gap-2 text-xs font-black tracking-[0.22em] uppercase text-neutral-900 select-none">
+                <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-black tracking-[0.22em] uppercase text-neutral-900 select-none">
                   <span>NEW COLLECTION 2026 / 2027</span>
                 </div>
 
                 {/* Massive Bold Headline (NEW SEASON. in Black, NEW ENERGY. in White) */}
-                <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[76px] font-black uppercase tracking-tight leading-[0.88] select-none">
+                <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[80px] font-black uppercase tracking-tight leading-[0.88] select-none">
                   <span className="block text-neutral-950">NEW SEASON.</span>
-                  <span className="block text-white drop-shadow-[0_3px_8px_rgba(0,0,0,0.35)]">
+                  <span className="block text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                     NEW ENERGY.
                   </span>
                 </h1>
@@ -232,7 +232,7 @@ export default async function HomePage() {
                   <Link href="/categories/women">
                     <Button
                       size="lg"
-                      className="bg-neutral-950 text-white hover:bg-neutral-800 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-6 sm:px-8 py-3.5 sm:py-4 shadow-lg flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
+                      className="bg-neutral-950 text-white hover:bg-neutral-800 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-4 shadow-lg flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
                     >
                       <span>SHOP WOMEN</span>
                       <MaterialIcon name="arrow_forward" size="sm" />
@@ -243,7 +243,7 @@ export default async function HomePage() {
                     <Button
                       size="lg"
                       variant="outline"
-                      className="bg-[#E7E5E4]/85 text-neutral-950 hover:bg-[#D6D3D1] border border-neutral-400/80 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-6 sm:px-8 py-3.5 sm:py-4 shadow-sm flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
+                      className="bg-[#E7E5E4]/90 text-neutral-950 hover:bg-[#D6D3D1] border border-neutral-400/80 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-4 shadow-sm flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
                     >
                       <span>SHOP MEN</span>
                       <MaterialIcon name="arrow_forward" size="sm" />
@@ -260,25 +260,31 @@ export default async function HomePage() {
               </div>
 
               {/* Right Side Visual Accents & Season Metadata */}
-              <div className="hidden md:flex md:col-span-5 lg:col-span-6 flex-col justify-between items-end h-full min-h-[460px] pointer-events-none select-none">
-                {/* Style Lives Here Calligraphic Typography Badge */}
-                <div className="mt-8 mr-4 sm:mr-8 bg-white/20 backdrop-blur-xs p-3 rounded-lg border border-white/20">
-                  <span className="font-serif italic font-bold text-3xl sm:text-4xl text-neutral-900 tracking-tight drop-shadow-sm">
-                    Style Lives Here
-                  </span>
+              <div className="hidden md:flex md:col-span-5 lg:col-span-6 flex-col justify-between items-end h-full min-h-[480px] lg:min-h-[520px] pointer-events-none select-none">
+                {/* Style Lives Here Cursive Typography */}
+                <div className="mt-6 mr-2 lg:mr-8 text-right">
+                  <div className="font-serif italic font-normal text-5xl lg:text-7xl xl:text-[80px] text-neutral-900 leading-[0.85] tracking-tight drop-shadow-sm select-none">
+                    <span className="block">Style</span>
+                    <span className="block pl-6">Lives</span>
+                    <span className="block pl-10">Here</span>
+                  </div>
                 </div>
 
                 {/* Bottom Right Season Metadata */}
-                <div className="text-right pb-2 pr-2">
-                  <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-800">
-                    ZUDIO SS&apos;26 —
-                  </span>
+                <div className="text-right pb-3 pr-2 lg:pr-6">
+                  <p className="text-[11px] font-black uppercase tracking-[0.25em] text-neutral-900 leading-none">
+                    ZUDIO
+                  </p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-800 mt-0.5">
+                    SS&apos;26 —
+                  </p>
                 </div>
               </div>
             </div>
           </Container>
         </div>
       </section>
+
 
       {/* 3. Bottom Benefits / Service Strip (Matching Reference 4-Column Strip) */}
       <section className="bg-white border-b border-neutral-200 py-6 sm:py-7">
