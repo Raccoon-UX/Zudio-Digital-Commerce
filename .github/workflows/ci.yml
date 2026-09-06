@@ -1,0 +1,103 @@
+name: CI Quality Gate & Automated Deployment
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  validate-and-build:
+    name: Validate, Test & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # Safe build-time dummy values to ensure hermetic validation without exposing secrets
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/zudio_ci?schema=public"
+      NEXTAUTH_SECRET: "ci-validation-secret-at-least-32-chars-long-abc123"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      RAZORPAY_KEY_ID: "rzp_test_ci_placeholder"
+      RAZORPAY_KEY_SECRET: "ci_razorpay_secret_placeholder"
+      NODE_ENV: "production"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Prisma Schema
+        run: npx prisma validate
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Run Automated Test Suite
+        run: npm test
+
+      - name: Verify Production Next.js Build
+        run: npm run build
+
+  production-health-check:
+    name: Production Health Verification
+    needs: validate-and-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Probe Production Health Endpoint
+        run: |
+          set +e
+          echo "Starting post-deployment health check..."
+          if [ -z "${{ secrets.PRODUCTION_APP_URL }}" ]; then
+            echo "ℹ️ Optional: Configure 'PRODUCTION_APP_URL' in GitHub Repository Secrets (Settings -> Secrets -> Actions) to enable active post-deployment health check probes."
+            exit 0
+          fi
+
+          PROD_URL="${{ secrets.PRODUCTION_APP_URL }}"
+          HEALTH_URL="${PROD_URL%/}/api/health"
+          echo "Target Health Check Endpoint: ${HEALTH_URL}"
+
+          MAX_ATTEMPTS=6
+          RETRY_INTERVAL=15
+          SUCCESS=0
+
+          for ATTEMPT in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $ATTEMPT of $MAX_ATTEMPTS: Probing /api/health..."
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$HEALTH_URL" 2>/dev/null || echo "000")
+            echo "HTTP Status Code: $HTTP_CODE"
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✓ Production health probe passed successfully (HTTP 200) on attempt $ATTEMPT."
+              SUCCESS=1
+              break
+            fi
+
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              echo "Health check not ready yet (HTTP $HTTP_CODE). Retrying in ${RETRY_INTERVAL}s..."
+              sleep $RETRY_INTERVAL
+            fi
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "❌ Production health check failed after $MAX_ATTEMPTS attempts."
+            exit 1
+          fi
