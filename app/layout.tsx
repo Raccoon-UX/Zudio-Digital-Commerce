@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { WebsiteLoader } from "@/components/ui/WebsiteLoader";
 import { Header } from "@/components/layout/Header";
@@ -59,6 +60,25 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col bg-white text-neutral-900 font-sans pb-16 md:pb-0">
+        <Script
+          id="matomo-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              var _paq = window._paq = window._paq || [];
+              /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+              _paq.push(['trackPageView']);
+              _paq.push(['enableLinkTracking']);
+              (function() {
+                var u="https://zudiodigitalcommercevercelapp.matomo.cloud/";
+                _paq.push(['setTrackerUrl', u+'matomo.php']);
+                _paq.push(['setSiteId', '1']);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+                g.async=true; g.src='https://cdn.matomo.cloud/zudiodigitalcommercevercelapp.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+              })();
+            `,
+          }}
+        />
         <WebsiteLoader />
         <SessionProvider>
           <Header />
