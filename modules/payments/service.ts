@@ -6,6 +6,7 @@ import {
   RazorpayOrderResponseDTO,
   VerifyPaymentInput,
   PaymentVerificationResultDTO,
+  WebhookProcessingResult,
 } from "./types";
 
 export async function createRazorpayPaymentOrder(
@@ -270,60 +271,308 @@ export async function verifyPaymentSignature(
 }
 
 /**
- * Handle Razorpay Webhook Events with strict cryptographic verification against RAZORPAY_WEBHOOK_SECRET.
+ * Strict Cryptographic Webhook HMAC-SHA256 Signature Verification.
+ * Uses timingSafeEqual to protect against timing analysis attacks.
+ */
+export function verifyWebhookSignature(
+  rawBody: string,
+  signatureHeader: string,
+  secret: string
+): boolean {
+  if (!rawBody || !signatureHeader || !secret) {
+    return false;
+  }
+  try {
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(rawBody)
+      .digest("hex");
+
+    const expectedBuf = Buffer.from(expectedSignature, "utf8");
+    const actualBuf = Buffer.from(signatureHeader, "utf8");
+
+    if (expectedBuf.length !== actualBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(expectedBuf, actualBuf);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Handle Razorpay Webhook Events with strict cryptographic verification and atomic state transitions.
+ * Authoritative server-side event processor.
+ * Idempotent, safe against duplicate deliveries, and logs structured audit events.
+ * (Phase A1: Updates Payment and Order state without inventory deduction).
  */
 export async function handleRazorpayWebhook(
   rawBody: string,
   signatureHeader: string | null
-): Promise<{ processed: boolean; event?: string }> {
+): Promise<WebhookProcessingResult> {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
-  if (!signatureHeader || !webhookSecret) {
-    throw new AppError("Missing Razorpay webhook signature header or server secret.", "UNAUTHORIZED", 401);
+  if (!webhookSecret) {
+    throw new AppError("Razorpay webhook secret configuration is missing on server.", "INTERNAL_SERVER_ERROR", 500);
   }
 
-  // Validate webhook signature strictly
-  const expectedSignature = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(rawBody)
-    .digest("hex");
-
-  if (expectedSignature !== signatureHeader) {
-    throw new AppError("Invalid webhook signature.", "UNAUTHORIZED", 401);
+  if (!signatureHeader) {
+    throw new AppError("Missing Razorpay webhook signature header.", "INVALID_REQUEST", 400);
   }
 
-  const payload = JSON.parse(rawBody);
-  const event = payload.event;
+  const isSignatureValid = verifyWebhookSignature(rawBody, signatureHeader, webhookSecret);
+  if (!isSignatureValid) {
+    throw new AppError("Invalid Razorpay webhook cryptographic signature.", "INVALID_REQUEST", 400);
+  }
 
+  let payload: any;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    throw new AppError("Malformed JSON payload in webhook body.", "INVALID_REQUEST", 400);
+  }
+
+  const event = payload?.event;
+  if (!event || typeof event !== "string") {
+    throw new AppError("Missing or invalid event field in webhook payload.", "INVALID_REQUEST", 400);
+  }
+
+  // 1. Successful payment events: payment.captured or order.paid
   if (event === "payment.captured" || event === "order.paid") {
-    const paymentEntity = payload.payload.payment?.entity;
-    const razorpayOrderId = paymentEntity?.order_id || payload.payload.order?.entity?.id;
+    const paymentEntity = payload.payload?.payment?.entity;
+    const orderEntity = payload.payload?.order?.entity;
+
+    const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
     const razorpayPaymentId = paymentEntity?.id;
+    const paymentMethod = paymentEntity?.method || "RAZORPAY_WEBHOOK";
 
-    if (razorpayOrderId) {
-      const paymentRecord = await prisma.payment.findUnique({
-        where: { razorpayOrderId },
-      });
+    if (!razorpayOrderId) {
+      return {
+        received: true,
+        event,
+        status: "ignored",
+        message: "No associated Razorpay order ID found in payload.",
+      };
+    }
 
-      if (paymentRecord && paymentRecord.status !== "PAID") {
-        const keySecret = process.env.RAZORPAY_KEY_SECRET || "";
-        const genuineSignature = crypto
-          .createHmac("sha256", keySecret)
-          .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-          .digest("hex");
+    // Lookup payment record by razorpayOrderId or fallback to notes.orderId
+    let paymentRecord = await prisma.payment.findUnique({
+      where: { razorpayOrderId },
+      include: { order: true },
+    });
 
-        await verifyPaymentSignature({
-          orderId: paymentRecord.orderId,
-          razorpayOrderId,
-          razorpayPaymentId: razorpayPaymentId || `pay_webhook_${Date.now()}`,
-          razorpaySignature: genuineSignature,
-          paymentMethod: paymentEntity?.method || "WEBHOOK",
+    if (!paymentRecord) {
+      const noteOrderId = paymentEntity?.notes?.orderId || orderEntity?.notes?.orderId;
+      if (noteOrderId) {
+        paymentRecord = await prisma.payment.findUnique({
+          where: { orderId: noteOrderId },
+          include: { order: true },
         });
       }
     }
+
+    if (!paymentRecord) {
+      return {
+        received: true,
+        event,
+        status: "ignored",
+        message: `No matching internal order found for Razorpay Order ${razorpayOrderId}.`,
+      };
+    }
+
+    // Idempotency check: Already marked PAID
+    if (paymentRecord.status === "PAID") {
+      return {
+        received: true,
+        event,
+        orderId: paymentRecord.orderId,
+        orderNumber: paymentRecord.order.orderNumber,
+        paymentId: paymentRecord.razorpayPaymentId || razorpayPaymentId,
+        status: "already_processed",
+        message: "Payment and order are already marked as PAID.",
+      };
+    }
+
+    // Atomic Database Transaction: Update Payment, Order Status, and AuditLog
+    const txResult = await prisma.$transaction(async (tx) => {
+      // Conditional atomic update
+      const updateResult = await tx.payment.updateMany({
+        where: {
+          orderId: paymentRecord!.orderId,
+          status: { in: ["PENDING", "PROCESSING", "FAILED"] },
+        },
+        data: {
+          status: "PAID",
+          razorpayOrderId,
+          razorpayPaymentId: razorpayPaymentId || undefined,
+          paymentMethod,
+          verifiedAt: new Date(),
+        },
+      });
+
+      if (updateResult.count === 0) {
+        // Lost race to concurrent webhook / callback; already updated to PAID
+        return { alreadyProcessed: true };
+      }
+
+      // Order status transition: Only transition if in initial placement/processing
+      if (paymentRecord!.order.status === "ORDER_PLACED" || paymentRecord!.order.status === "PROCESSING") {
+        await tx.order.update({
+          where: { id: paymentRecord!.orderId },
+          data: { status: "CONFIRMED" },
+        });
+      }
+
+      // Record immutable audit event
+      await tx.auditLog.create({
+        data: {
+          userId: paymentRecord!.order.userId || null,
+          action: "PAYMENT_WEBHOOK_PROCESSED",
+          entityType: "Order",
+          entityId: paymentRecord!.orderId,
+          details: {
+            orderNumber: paymentRecord!.order.orderNumber,
+            razorpayOrderId,
+            razorpayPaymentId,
+            paymentMethod,
+            event,
+            amount: paymentEntity?.amount ? paymentEntity.amount / 100 : Number(paymentRecord!.amount),
+            previousStatus: paymentRecord!.status,
+            newStatus: "PAID",
+          },
+        },
+      });
+
+      return { alreadyProcessed: false };
+    });
+
+    return {
+      received: true,
+      event,
+      orderId: paymentRecord.orderId,
+      orderNumber: paymentRecord.order.orderNumber,
+      paymentId: razorpayPaymentId || paymentRecord.razorpayPaymentId,
+      status: txResult.alreadyProcessed ? "already_processed" : "processed",
+      message: txResult.alreadyProcessed
+        ? "Payment was already updated concurrently."
+        : "Payment and Order status successfully confirmed as PAID.",
+    };
   }
 
-  return { processed: true, event };
+  // 2. Failed payment event: payment.failed
+  if (event === "payment.failed") {
+    const paymentEntity = payload.payload?.payment?.entity;
+    const razorpayOrderId = paymentEntity?.order_id;
+    const razorpayPaymentId = paymentEntity?.id;
+    const errorCode = paymentEntity?.error_code || "PAYMENT_FAILED";
+    const errorDescription = paymentEntity?.error_description || "Payment failed at gateway";
+
+    if (!razorpayOrderId) {
+      return {
+        received: true,
+        event,
+        status: "ignored",
+        message: "No associated Razorpay order ID found in payment.failed payload.",
+      };
+    }
+
+    const paymentRecord = await prisma.payment.findUnique({
+      where: { razorpayOrderId },
+      include: { order: true },
+    });
+
+    if (!paymentRecord) {
+      return {
+        received: true,
+        event,
+        status: "ignored",
+        message: `No matching internal order found for Razorpay Order ${razorpayOrderId}.`,
+      };
+    }
+
+    // Idempotency: If already marked PAID, do not revert to FAILED
+    if (paymentRecord.status === "PAID") {
+      return {
+        received: true,
+        event,
+        orderId: paymentRecord.orderId,
+        orderNumber: paymentRecord.order.orderNumber,
+        paymentId: paymentRecord.razorpayPaymentId || razorpayPaymentId,
+        status: "already_processed",
+        message: "Order is already in PAID state; ignored late failure event.",
+      };
+    }
+
+    // Idempotency: If already marked FAILED
+    if (paymentRecord.status === "FAILED") {
+      return {
+        received: true,
+        event,
+        orderId: paymentRecord.orderId,
+        orderNumber: paymentRecord.order.orderNumber,
+        paymentId: paymentRecord.razorpayPaymentId || razorpayPaymentId,
+        status: "already_processed",
+        message: "Payment failure has already been recorded.",
+      };
+    }
+
+    const txResult = await prisma.$transaction(async (tx) => {
+      const updateResult = await tx.payment.updateMany({
+        where: {
+          orderId: paymentRecord.orderId,
+          status: { in: ["PENDING", "PROCESSING"] },
+        },
+        data: {
+          status: "FAILED",
+          razorpayPaymentId: razorpayPaymentId || undefined,
+        },
+      });
+
+      if (updateResult.count === 0) {
+        return { alreadyProcessed: true };
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: paymentRecord.order.userId || null,
+          action: "PAYMENT_WEBHOOK_FAILED",
+          entityType: "Order",
+          entityId: paymentRecord.orderId,
+          details: {
+            orderNumber: paymentRecord.order.orderNumber,
+            razorpayOrderId,
+            razorpayPaymentId,
+            errorCode,
+            errorDescription,
+            event,
+          },
+        },
+      });
+
+      return { alreadyProcessed: false };
+    });
+
+    return {
+      received: true,
+      event,
+      orderId: paymentRecord.orderId,
+      orderNumber: paymentRecord.order.orderNumber,
+      paymentId: razorpayPaymentId,
+      status: txResult.alreadyProcessed ? "already_processed" : "failed_recorded",
+      message: txResult.alreadyProcessed
+        ? "Payment failure was already recorded."
+        : `Payment failure recorded: ${errorDescription}`,
+    };
+  }
+
+  // 3. Other unhandled Razorpay events
+  return {
+    received: true,
+    event,
+    status: "ignored",
+    message: `Event '${event}' safely acknowledged.`,
+  };
 }
 
 /**

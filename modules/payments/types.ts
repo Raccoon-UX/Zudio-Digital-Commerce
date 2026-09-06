@@ -28,3 +28,14 @@ export interface PaymentVerificationResultDTO {
   verifiedAt: string;
   razorpayPaymentId: string;
 }
+
+export interface WebhookProcessingResult {
+  received: boolean;
+  event: string;
+  orderId?: string;
+  orderNumber?: string;
+  paymentId?: string;
+  status: "processed" | "already_processed" | "failed_recorded" | "ignored";
+  message?: string;
+}
+
