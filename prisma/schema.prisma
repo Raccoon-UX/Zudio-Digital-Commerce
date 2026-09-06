@@ -63,12 +63,15 @@ model User {
   passwordHash String?
   name         String
   phone        String?
+  image        String?
+  googleImage  String?
   role         Role          @default(CUSTOMER)
   storeId      String?
   store        Store?        @relation("StoreStaff", fields: [storeId], references: [id], onDelete: SetNull)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
+  avatar       UserAvatar?
   addresses    Address[]
   cart         Cart?
   wishlist     Wishlist?
@@ -78,6 +81,19 @@ model User {
 
   @@index([email])
   @@index([storeId])
+}
+
+model UserAvatar {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Bytes
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Address {

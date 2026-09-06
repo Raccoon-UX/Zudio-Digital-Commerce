@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma/client";
 import { hashPassword, validatePasswordPolicy } from "@/lib/auth/password";
 import { apiSuccess, apiError, AppError } from "@/lib/errors";
 import { enforceRateLimit } from "@/lib/rate-limiter";
+import { validateAndExtractAvatarBuffer, buildAvatarEndpointUrl } from "@/lib/auth/avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     enforceRateLimit(request, "auth_register", 5, 60 * 1000);
     const body = await request.json();
-    const { name, email, password, phone } = body;
+    const { name, email, password, phone, image } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return apiError("INVALID_REQUEST", "Full name is required.", 400);
@@ -21,6 +22,20 @@ export async function POST(request: NextRequest) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // Optional profile image validation
+    let avatarBufferToSave: { buffer: Buffer; mimeType: string; size: number } | null = null;
+    if (image) {
+      const validation = validateAndExtractAvatarBuffer(image);
+      if (!validation.isValid || !validation.buffer) {
+        return apiError("INVALID_REQUEST", validation.error || "Invalid avatar image format.", 400);
+      }
+      avatarBufferToSave = {
+        buffer: validation.buffer,
+        mimeType: validation.mimeType!,
+        size: validation.size!,
+      };
+    }
 
     // Password validation (8+ characters as specified)
     const policyCheck = validatePasswordPolicy(password);
@@ -39,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     const passwordHash = await hashPassword(password);
 
-    // Create user and initialize cart + wishlist
+    // Create user and initialize cart + wishlist + optional avatar binary
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
@@ -49,15 +64,24 @@ export async function POST(request: NextRequest) {
           phone: phone ? phone.trim() : null,
           role: "CUSTOMER",
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          role: true,
-          createdAt: true,
-        },
       });
+
+      let finalImageUrl: string | null = null;
+      if (avatarBufferToSave) {
+        await tx.userAvatar.create({
+          data: {
+            userId: newUser.id,
+            data: avatarBufferToSave.buffer,
+            mimeType: avatarBufferToSave.mimeType,
+            size: avatarBufferToSave.size,
+          },
+        });
+        finalImageUrl = buildAvatarEndpointUrl(newUser.id);
+        await tx.user.update({
+          where: { id: newUser.id },
+          data: { image: finalImageUrl },
+        });
+      }
 
       // Initialize empty user cart & wishlist
       await tx.cart.create({
@@ -68,7 +92,15 @@ export async function POST(request: NextRequest) {
         data: { userId: newUser.id },
       });
 
-      return newUser;
+      return {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        image: finalImageUrl,
+        role: newUser.role,
+        createdAt: newUser.createdAt,
+      };
     });
 
     return apiSuccess(user, 201);

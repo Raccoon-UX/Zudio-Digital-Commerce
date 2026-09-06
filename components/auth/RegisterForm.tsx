@@ -16,9 +16,46 @@ export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAvatarError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      setAvatarError("Please select a JPEG, PNG, or WebP image.");
+      return;
+    }
+
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError("Image must be smaller than 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (typeof event.target?.result === "string") {
+        setAvatarPreview(event.target.result);
+      }
+    };
+    reader.onerror = () => {
+      setAvatarError("Failed to read image file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarPreview(null);
+    setAvatarError(null);
+  };
 
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
@@ -52,6 +89,7 @@ export const RegisterForm: React.FC = () => {
           email: email.trim().toLowerCase(),
           phone: phone.trim() || undefined,
           password,
+          image: avatarPreview || undefined,
         }),
       });
 
@@ -151,6 +189,54 @@ export const RegisterForm: React.FC = () => {
 
       {/* Standard Registration Form */}
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {/* Optional Profile Photo Picker */}
+        <div className="flex items-center gap-4 p-3 bg-neutral-50 border border-neutral-200 rounded-xl">
+          <div className="relative w-14 h-14 rounded-full overflow-hidden bg-neutral-900 text-white flex items-center justify-center font-bold text-lg shrink-0 border-2 border-white shadow-xs">
+            {avatarPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarPreview}
+                alt="Profile Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : name.trim() ? (
+              <span className="font-mono uppercase">{name.trim().charAt(0)}</span>
+            ) : (
+              <MaterialIcon name="person" size={24} className="text-neutral-400" />
+            )}
+          </div>
+          <div className="flex-1 space-y-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-900">
+              Profile Photo <span className="font-normal text-neutral-400 lowercase">(optional)</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer inline-flex items-center gap-1 py-1 px-2.5 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-800 text-[10px] font-bold uppercase tracking-wider rounded transition-colors shadow-2xs">
+                <MaterialIcon name="upload" size={12} />
+                <span>{avatarPreview ? "Change" : "Upload"}</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
+              {avatarPreview && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="inline-flex items-center gap-1 py-1 px-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[10px] font-bold uppercase tracking-wider rounded transition-colors"
+                >
+                  <MaterialIcon name="close" size={12} />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
+            {avatarError && (
+              <p className="text-[10px] text-rose-600 font-medium">{avatarError}</p>
+            )}
+          </div>
+        </div>
+
         <div>
           <label className="block font-bold uppercase tracking-wider text-black mb-1.5">
             Full Name *
