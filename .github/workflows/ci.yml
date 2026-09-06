@@ -20,6 +20,7 @@ jobs:
     env:
       # Safe build-time dummy values to ensure hermetic validation without exposing secrets
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/zudio_ci?schema=public"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/zudio_ci?schema=public"
       NEXTAUTH_SECRET: "ci-validation-secret-at-least-32-chars-long-abc123"
       NEXTAUTH_URL: "http://localhost:3000"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
