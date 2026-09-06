@@ -199,7 +199,7 @@ export default async function HomePage() {
               fill
               priority
               sizes="100vw"
-              className="object-cover object-[70%_center] sm:object-[68%_center] lg:object-[64%_center]"
+              className="object-cover object-right sm:object-[92%_center] lg:object-[90%_center]"
             />
             {/* Soft warm gradient on small screens to guarantee crisp text legibility over models */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#D6D0CA]/95 via-[#D6D0CA]/75 to-transparent z-[1] md:hidden" />
@@ -252,16 +252,16 @@ export default async function HomePage() {
           </Container>
 
           {/* Style Lives Here Artistic Brush Script Typography */}
-          <div className="hidden md:block absolute top-6 lg:top-8 right-6 lg:right-12 xl:right-16 select-none pointer-events-none -rotate-[14deg] z-10">
-            <div className="font-brush text-5xl lg:text-7xl xl:text-[80px] text-[#111111] leading-[0.8] tracking-tight text-right">
+          <div className="hidden md:block absolute top-6 sm:top-8 lg:top-10 right-3 sm:right-5 md:right-6 lg:right-8 xl:right-12 select-none pointer-events-none -rotate-[13deg] z-10">
+            <div className="font-brush text-4xl sm:text-5xl md:text-6xl lg:text-[70px] xl:text-[76px] text-[#111111] leading-[0.82] tracking-tight text-right drop-shadow-2xs">
               <span className="block">Style</span>
-              <span className="block pr-3 lg:pr-5">Lives</span>
-              <span className="block pr-6 lg:pr-10">Here</span>
+              <span className="block pr-2 lg:pr-3">Lives</span>
+              <span className="block pr-4 lg:pr-6">Here</span>
             </div>
           </div>
 
           {/* Bottom Right Season Metadata */}
-          <div className="hidden md:block absolute bottom-6 lg:bottom-8 right-6 lg:right-12 xl:right-16 text-right select-none pointer-events-none z-10">
+          <div className="hidden md:block absolute bottom-6 lg:bottom-8 right-4 sm:right-6 md:right-8 lg:right-10 xl:right-14 text-right select-none pointer-events-none z-10">
             <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-[0.25em] text-neutral-900 leading-none">
               ZUDIO
             </p>
