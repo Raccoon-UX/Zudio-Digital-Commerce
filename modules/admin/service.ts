@@ -552,8 +552,14 @@ export async function updateAdminOrderStatus(
         throw new AppError("Order status was modified concurrently.", "CONCURRENCY_ERROR", 409);
       }
 
-      // If the order was CONFIRMED or PROCESSING, payment committed stock to order.storeId. Restore it.
-      if (order.storeId && (current === "CONFIRMED" || current === "PROCESSING")) {
+      // If the order was CONFIRMED or normal PROCESSING, payment committed stock to order.storeId. Restore it.
+      // If order is in PROCESSING due to FULFILLMENT_EXCEPTION, stock was never committed, so skip restoration.
+      const hadCommittedStock =
+        current === "CONFIRMED" ||
+        (current === "PROCESSING" &&
+          !order.notes?.includes("FULFILLMENT_EXCEPTION"));
+
+      if (order.storeId && hadCommittedStock) {
         for (const item of order.items) {
           await tx.inventory.update({
             where: {
@@ -570,16 +576,24 @@ export async function updateAdminOrderStatus(
       }
     });
 
+    const hadCommittedStock =
+      current === "CONFIRMED" ||
+      (current === "PROCESSING" &&
+        !order.notes?.includes("FULFILLMENT_EXCEPTION"));
+
     await recordAuditLog({
       userId: adminUser.id,
-      action: "ORDER_CANCELLED_WITH_INVENTORY_RESTORE",
+      action: hadCommittedStock
+        ? "ORDER_CANCELLED_WITH_INVENTORY_RESTORE"
+        : "ORDER_CANCELLED",
       entityType: "Order",
       entityId: order.id,
       details: {
         orderNumber: order.orderNumber,
         previousStatus: current,
         storeId: order.storeId,
-        itemsRestoredCount: order.items.length,
+        itemsRestoredCount: hadCommittedStock ? order.items.length : 0,
+        fulfillmentException: order.notes?.includes("FULFILLMENT_EXCEPTION") || false,
       },
     });
 
