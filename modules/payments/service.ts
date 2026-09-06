@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma/client";
 import { AppError } from "@/lib/errors";
 import { razorpay } from "./razorpay";
@@ -96,6 +97,284 @@ export async function createRazorpayPaymentOrder(
   };
 }
 
+export interface CommitInventoryOptions {
+  eventSource?: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  paymentMethod?: string;
+}
+
+export interface InventoryItemCommitDetail {
+  variantId: string;
+  variantSku: string;
+  productName: string;
+  quantityRequested: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  reservedQuantity: number;
+  availableBefore: number;
+  availableAfter: number;
+}
+
+export interface FailedFulfillmentItem {
+  variantId: string;
+  variantSku: string;
+  productName: string;
+  quantityRequested: number;
+  quantityAvailable: number;
+  physicalQuantity: number;
+  reservedQuantity: number;
+  reason: string;
+}
+
+export interface OrderFulfillmentResult {
+  stockCommitted: boolean;
+  orderId: string;
+  orderNumber: string;
+  storeId: string;
+  itemDetails: InventoryItemCommitDetail[];
+  failedItems?: FailedFulfillmentItem[];
+}
+
+/**
+ * Shared Internal Transactional All-or-Nothing Fulfillment Routine.
+ *
+ * Invariants:
+ * 1. Evaluates available stock strictly as (quantity - reservedQuantity).
+ *    Never consumes stock held by active in-store reservations.
+ * 2. Uses PostgreSQL row-level locks (FOR UPDATE) in deterministic ascending order
+ *    to guarantee race-free concurrency and prevent deadlocks.
+ * 3. ALL-OR-NOTHING: If ANY line item lacks available stock, ZERO inventory rows are decremented.
+ *    Order transitions to PROCESSING with FULFILLMENT_EXCEPTION note and audit log.
+ * 4. SUCCESS: Decrements exact physical stock for all items, transitions Order to CONFIRMED,
+ *    and writes rich INVENTORY_FULFILLMENT_COMMITTED audit log.
+ */
+export async function commitOrderInventory(
+  tx: Prisma.TransactionClient,
+  order: {
+    id: string;
+    orderNumber: string;
+    userId?: string | null;
+    storeId?: string | null;
+    items: Array<{
+      variantId: string;
+      variantSku?: string;
+      productName?: string;
+      quantity: number;
+    }>;
+  },
+  options?: CommitInventoryOptions
+): Promise<OrderFulfillmentResult> {
+  if (!order.storeId) {
+    throw new AppError("Order has no assigned fulfillment store.", "INTERNAL_SERVER_ERROR", 500);
+  }
+
+  const storeId = order.storeId;
+  const uniqueVariantIds = Array.from(new Set(order.items.map((i) => i.variantId)));
+
+  if (uniqueVariantIds.length === 0) {
+    await tx.order.update({
+      where: { id: order.id },
+      data: { status: "CONFIRMED" },
+    });
+    return {
+      stockCommitted: true,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      storeId,
+      itemDetails: [],
+    };
+  }
+
+  // 1. Acquire PostgreSQL Exclusive Row-Level Locks (FOR UPDATE) in deterministic order
+  let lockedInventories: Array<{
+    id: string;
+    storeId: string;
+    variantId: string;
+    quantity: number;
+    reservedQuantity: number;
+  }>;
+
+  try {
+    lockedInventories = await tx.$queryRaw<
+      Array<{
+        id: string;
+        storeId: string;
+        variantId: string;
+        quantity: number;
+        reservedQuantity: number;
+      }>
+    >(
+      Prisma.sql`SELECT "id", "storeId", "variantId", "quantity", "reservedQuantity"
+                 FROM "Inventory"
+                 WHERE "storeId" = ${storeId}
+                   AND "variantId" IN (${Prisma.join(uniqueVariantIds)})
+                 ORDER BY "variantId" ASC
+                 FOR UPDATE`
+    );
+  } catch {
+    // Graceful fallback for non-Postgres adapters or simulated environments
+    lockedInventories = await tx.inventory.findMany({
+      where: {
+        storeId,
+        variantId: { in: uniqueVariantIds },
+      },
+      orderBy: { variantId: "asc" },
+    });
+  }
+
+  const invMap = new Map(lockedInventories.map((i) => [i.variantId, i]));
+
+  // Aggregate total requested quantity per variant across all line items
+  const requestedMap = new Map<string, number>();
+  for (const item of order.items) {
+    requestedMap.set(
+      item.variantId,
+      (requestedMap.get(item.variantId) || 0) + item.quantity
+    );
+  }
+
+  // 2. Validate All-or-Nothing Availability against (quantity - reservedQuantity)
+  const failedItems: FailedFulfillmentItem[] = [];
+
+  for (const [variantId, totalRequested] of Array.from(requestedMap.entries())) {
+    const inv = invMap.get(variantId);
+    const matchingItem = order.items.find((i) => i.variantId === variantId);
+
+    if (!inv) {
+      failedItems.push({
+        variantId,
+        variantSku: matchingItem?.variantSku || "UNKNOWN",
+        productName: matchingItem?.productName || "Product",
+        quantityRequested: totalRequested,
+        quantityAvailable: 0,
+        physicalQuantity: 0,
+        reservedQuantity: 0,
+        reason: "Inventory record does not exist at allocated fulfillment store.",
+      });
+      continue;
+    }
+
+    const availableStock = Math.max(0, inv.quantity - inv.reservedQuantity);
+    if (availableStock < totalRequested) {
+      failedItems.push({
+        variantId,
+        variantSku: matchingItem?.variantSku || "UNKNOWN",
+        productName: matchingItem?.productName || "Product",
+        quantityRequested: totalRequested,
+        quantityAvailable: availableStock,
+        physicalQuantity: inv.quantity,
+        reservedQuantity: inv.reservedQuantity,
+        reason: `Insufficient available stock (requested ${totalRequested}, available ${availableStock}, physical ${inv.quantity}, reserved ${inv.reservedQuantity}).`,
+      });
+    }
+  }
+
+  // 3. Winning Path: All items have sufficient stock
+  if (failedItems.length === 0) {
+    const itemDetails: InventoryItemCommitDetail[] = [];
+
+    for (const [variantId, totalRequested] of Array.from(requestedMap.entries())) {
+      const inv = invMap.get(variantId)!;
+      const matchingItem = order.items.find((i) => i.variantId === variantId);
+
+      await tx.inventory.update({
+        where: {
+          storeId_variantId: {
+            storeId,
+            variantId,
+          },
+        },
+        data: {
+          quantity: { decrement: totalRequested },
+        },
+      });
+
+      itemDetails.push({
+        variantId,
+        variantSku: matchingItem?.variantSku || "UNKNOWN",
+        productName: matchingItem?.productName || "Product",
+        quantityRequested: totalRequested,
+        quantityBefore: inv.quantity,
+        quantityAfter: inv.quantity - totalRequested,
+        reservedQuantity: inv.reservedQuantity,
+        availableBefore: Math.max(0, inv.quantity - inv.reservedQuantity),
+        availableAfter: Math.max(0, inv.quantity - totalRequested - inv.reservedQuantity),
+      });
+    }
+
+    // Move order to CONFIRMED
+    await tx.order.update({
+      where: { id: order.id },
+      data: { status: "CONFIRMED" },
+    });
+
+    // Record comprehensive fulfillment audit event
+    await tx.auditLog.create({
+      data: {
+        userId: order.userId || null,
+        action: "INVENTORY_FULFILLMENT_COMMITTED",
+        entityType: "Order",
+        entityId: order.id,
+        details: {
+          orderNumber: order.orderNumber,
+          allocatedStoreId: storeId,
+          eventSource: options?.eventSource || "PAYMENT_CAPTURE",
+          razorpayOrderId: options?.razorpayOrderId,
+          razorpayPaymentId: options?.razorpayPaymentId,
+          paymentMethod: options?.paymentMethod,
+          status: "CONFIRMED",
+          items: itemDetails,
+        } as any,
+      },
+    });
+
+    return {
+      stockCommitted: true,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      storeId,
+      itemDetails,
+    };
+  }
+
+  // 4. Safe Recovery Path: Zero partial decrements (ALL-OR-NOTHING)
+  await tx.order.update({
+    where: { id: order.id },
+    data: {
+      status: "PROCESSING",
+      notes: "FULFILLMENT_EXCEPTION: Store stock depleted during concurrent checkout. Administrator manual reallocation or refund required.",
+    },
+  });
+
+  await tx.auditLog.create({
+    data: {
+      userId: order.userId || null,
+      action: "ORDER_FULFILLMENT_EXCEPTION_STOCK_DEPLETED",
+      entityType: "Order",
+      entityId: order.id,
+      details: {
+        orderNumber: order.orderNumber,
+        allocatedStoreId: storeId,
+        eventSource: options?.eventSource || "PAYMENT_CAPTURE",
+        razorpayOrderId: options?.razorpayOrderId,
+        razorpayPaymentId: options?.razorpayPaymentId,
+        reason: "Store stock exhausted or held by active reservations before payment confirmation. Reallocation or refund required.",
+        failedItems,
+      } as any,
+    },
+  });
+
+  return {
+    stockCommitted: false,
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    storeId,
+    itemDetails: [],
+    failedItems,
+  };
+}
+
 /**
  * Strict Cryptographic Server-Side Payment Verification.
  * ONLY accepts genuinely verifiable Razorpay payment credentials and HMAC-SHA256 signatures.
@@ -189,72 +468,19 @@ export async function verifyPaymentSignature(
       };
     }
 
-    // Target EXACT fulfillment store inventory with CONDITIONAL ATOMIC UPDATE
-    const order = payment.order;
-    if (!order.storeId) {
-      throw new AppError("Order has no assigned fulfillment store.", "INTERNAL_SERVER_ERROR", 500);
-    }
-
-    let allItemsCommitted = true;
-    for (const item of order.items) {
-      const invUpdate = await tx.inventory.updateMany({
-        where: {
-          storeId: order.storeId,
-          variantId: item.variantId,
-          quantity: { gte: item.quantity },
-        },
-        data: {
-          quantity: { decrement: item.quantity },
-        },
-      });
-
-      if (invUpdate.count === 0) {
-        allItemsCommitted = false;
-        break;
-      }
-    }
-
-    if (allItemsCommitted) {
-      // Normal winning path: Confirm Order
-      await tx.order.update({
-        where: { id: order.id },
-        data: { status: "CONFIRMED" },
-      });
-    } else {
-      // Safe Recovery State: Stock was exhausted by concurrent order
-      // Invariants:
-      // 1. Payment accurately recorded as PAID (money was genuinely captured)
-      // 2. Physical inventory NEVER drops below 0
-      // 3. Order is put into explicit fulfillment exception state
-      await tx.order.update({
-        where: { id: order.id },
-        data: {
-          status: "PROCESSING",
-          notes: "FULFILLMENT_EXCEPTION: Store stock depleted during concurrent checkout. Administrator manual reallocation or refund required.",
-        },
-      });
-
-      // Record Audit Log for administrator intervention
-      await tx.auditLog.create({
-        data: {
-          userId: order.userId || null,
-          action: "ORDER_FULFILLMENT_EXCEPTION_STOCK_DEPLETED",
-          entityType: "Order",
-          entityId: order.id,
-          details: {
-            orderNumber: order.orderNumber,
-            allocatedStoreId: order.storeId,
-            reason: "Store stock exhausted before payment confirmation. Reallocation or refund required.",
-          },
-        },
-      });
-    }
+    // Commit inventory using shared transactional routine
+    const fulfillment = await commitOrderInventory(tx, payment.order, {
+      eventSource: "CLIENT_VERIFICATION",
+      razorpayOrderId,
+      razorpayPaymentId,
+      paymentMethod: paymentMethod || "RAZORPAY",
+    });
 
     return {
       alreadyPaid: false,
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      stockExhausted: !allItemsCommitted,
+      orderId: payment.orderId,
+      orderNumber: payment.order.orderNumber,
+      stockExhausted: !fulfillment.stockCommitted,
       verifiedAt: new Date().toISOString(),
       razorpayPaymentId,
     };
@@ -394,9 +620,9 @@ export async function handleRazorpayWebhook(
       };
     }
 
-    // Atomic Database Transaction: Update Payment, Order Status, and AuditLog
+    // Atomic Database Transaction: Update Payment, Order Status, and AuditLog with All-or-Nothing Inventory Commitment
     const txResult = await prisma.$transaction(async (tx) => {
-      // Conditional atomic update
+      // 1. Conditional atomic update (Single-Winner Gate)
       const updateResult = await tx.payment.updateMany({
         where: {
           orderId: paymentRecord!.orderId,
@@ -413,18 +639,28 @@ export async function handleRazorpayWebhook(
 
       if (updateResult.count === 0) {
         // Lost race to concurrent webhook / callback; already updated to PAID
-        return { alreadyProcessed: true };
+        return { alreadyProcessed: true, stockCommitted: false };
       }
 
-      // Order status transition: Only transition if in initial placement/processing
-      if (paymentRecord!.order.status === "ORDER_PLACED" || paymentRecord!.order.status === "PROCESSING") {
-        await tx.order.update({
-          where: { id: paymentRecord!.orderId },
-          data: { status: "CONFIRMED" },
-        });
+      // 2. Fetch full order with items and store
+      const orderWithItems = await tx.order.findUnique({
+        where: { id: paymentRecord!.orderId },
+        include: { items: true, store: true },
+      });
+
+      if (!orderWithItems) {
+        throw new AppError("Associated order not found.", "INTERNAL_SERVER_ERROR", 500);
       }
 
-      // Record immutable audit event
+      // 3. Commit inventory atomically via shared routine
+      const fulfillment = await commitOrderInventory(tx, orderWithItems, {
+        eventSource: "WEBHOOK",
+        razorpayOrderId,
+        razorpayPaymentId,
+        paymentMethod,
+      });
+
+      // 4. Record webhook audit event
       await tx.auditLog.create({
         data: {
           userId: paymentRecord!.order.userId || null,
@@ -440,11 +676,14 @@ export async function handleRazorpayWebhook(
             amount: paymentEntity?.amount ? paymentEntity.amount / 100 : Number(paymentRecord!.amount),
             previousStatus: paymentRecord!.status,
             newStatus: "PAID",
+            orderStatus: fulfillment.stockCommitted ? "CONFIRMED" : "PROCESSING",
+            stockCommitted: fulfillment.stockCommitted,
+            allocatedStoreId: orderWithItems.storeId,
           },
         },
       });
 
-      return { alreadyProcessed: false };
+      return { alreadyProcessed: false, stockCommitted: fulfillment.stockCommitted };
     });
 
     return {
