@@ -60,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          image: user.image || user.googleImage || null,
         };
       },
     }),
@@ -74,6 +75,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const email = user.email.trim().toLowerCase();
+        const googlePic = (profile as any)?.picture || (profile as any)?.image || user.image || null;
 
         try {
           // Check if an account with this email already exists
@@ -86,6 +88,17 @@ export const authOptions: NextAuthOptions = {
             user.id = existingUser.id;
             (user as any).role = existingUser.role;
             (user as any).name = existingUser.name;
+
+            // If Google image is provided and differs from stored googleImage, update googleImage only
+            if (googlePic && existingUser.googleImage !== googlePic) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { googleImage: googlePic },
+              });
+            }
+
+            // Resolved avatar: Custom uploaded image takes precedence over Google picture
+            (user as any).image = existingUser.image || googlePic || null;
           } else {
             // New user: Atomically create User record, Cart, and Wishlist
             const displayName = user.name?.trim() || profile?.name?.trim() || "Customer";
@@ -97,6 +110,7 @@ export const authOptions: NextAuthOptions = {
                   email,
                   passwordHash: null,
                   role: "CUSTOMER",
+                  googleImage: googlePic,
                 },
               });
 
@@ -114,6 +128,7 @@ export const authOptions: NextAuthOptions = {
             user.id = newUser.id;
             (user as any).role = newUser.role;
             (user as any).name = newUser.name;
+            (user as any).image = googlePic;
           }
 
           return true;
@@ -126,12 +141,18 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role || "CUSTOMER";
         token.email = user.email;
         token.name = user.name;
+        token.picture = (user as any).image || null;
+      }
+      // Support client session update trigger
+      if (trigger === "update" && session?.user) {
+        if (session.user.name) token.name = session.user.name;
+        if (session.user.image !== undefined) token.picture = session.user.image;
       }
       return token;
     },
@@ -142,6 +163,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = (token.role as string) || "CUSTOMER";
         session.user.email = (token.email as string) || session.user.email;
         session.user.name = (token.name as string) || session.user.name;
+        session.user.image = (token.picture as string) || null;
       }
       return session;
     },

@@ -8,6 +8,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: "CUSTOMER" | "STORE_STAFF" | "ADMIN";
+  image?: string | null;
 }
 
 /**
@@ -29,6 +30,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       email: rawEmail,
       name: rawUser.name || "User",
       role: rawUser.role || "CUSTOMER",
+      image: rawUser.image || null,
     };
   }
 
@@ -36,7 +38,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   if (rawEmail) {
     const dbUserByEmail = await prisma.user.findUnique({
       where: { email: rawEmail },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, image: true, googleImage: true },
     });
     if (dbUserByEmail) {
       return {
@@ -44,6 +46,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         email: dbUserByEmail.email,
         name: dbUserByEmail.name,
         role: dbUserByEmail.role as any,
+        image: dbUserByEmail.image || dbUserByEmail.googleImage || null,
       };
     }
   }

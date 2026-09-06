@@ -30,6 +30,9 @@ interface ProfileData {
   name: string;
   email: string;
   phone: string | null;
+  image: string | null;
+  googleImage: string | null;
+  avatarUrl?: string | null;
   role: string;
   addresses: AddressItem[];
   _count: {
@@ -39,18 +42,22 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [recentOrders, setRecentOrders] = useState<OrderDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [heroAvatarError, setHeroAvatarError] = useState(false);
 
   // Edit Profile modal state
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
+  const [isAvatarRemoved, setIsAvatarRemoved] = useState(false);
+  const [editAvatarError, setEditAvatarError] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -84,6 +91,7 @@ export default function ProfilePage() {
         setProfile(profileData.data);
         setEditName(profileData.data.name || "");
         setEditPhone(profileData.data.phone || "");
+        setHeroAvatarError(false);
       } else {
         setError(profileData.error?.message || "Failed to load profile.");
       }
@@ -107,6 +115,53 @@ export default function ProfilePage() {
     }
   }, [status, router, fetchProfileAndOrders]);
 
+  const handleOpenEditProfile = () => {
+    setEditName(profile?.name || "");
+    setEditPhone(profile?.phone || "");
+    setEditAvatarPreview(profile?.image || null);
+    setIsAvatarRemoved(false);
+    setEditAvatarError(null);
+    setProfileError(null);
+    setIsEditProfileOpen(true);
+  };
+
+  const handleEditAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditAvatarError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate MIME
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      setEditAvatarError("Please select a JPEG, PNG, or WebP image.");
+      return;
+    }
+
+    // Validate size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setEditAvatarError("Image must be smaller than 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (typeof event.target?.result === "string") {
+        setEditAvatarPreview(event.target.result);
+        setIsAvatarRemoved(false);
+      }
+    };
+    reader.onerror = () => {
+      setEditAvatarError("Failed to read image file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomAvatar = () => {
+    setEditAvatarPreview(null);
+    setIsAvatarRemoved(true);
+    setEditAvatarError(null);
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editName.trim()) {
@@ -117,14 +172,22 @@ export default function ProfilePage() {
     setIsSavingProfile(true);
     setProfileError(null);
 
+    const updatePayload: { name: string; phone: string | null; image?: string | null } = {
+      name: editName.trim(),
+      phone: editPhone.trim() || null,
+    };
+
+    if (isAvatarRemoved) {
+      updatePayload.image = null;
+    } else if (editAvatarPreview && editAvatarPreview !== profile?.image) {
+      updatePayload.image = editAvatarPreview;
+    }
+
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          phone: editPhone.trim() || null,
-        }),
+        body: JSON.stringify(updatePayload),
       });
 
       const data = await res.json();
@@ -132,6 +195,13 @@ export default function ProfilePage() {
         setIsEditProfileOpen(false);
         // Explicit authoritative server re-fetch
         await fetchProfileAndOrders();
+        // Update client session so header reflects avatar immediately
+        if (typeof updateSession === "function") {
+          await updateSession({
+            name: data.data.name,
+            image: data.data.avatarUrl || null,
+          });
+        }
       } else {
         setProfileError(data.error?.message || "Failed to update profile.");
       }
@@ -473,7 +543,7 @@ export default function ProfilePage() {
 
               <button
                 type="button"
-                onClick={() => setIsEditProfileOpen(true)}
+                onClick={handleOpenEditProfile}
                 className="w-full text-left text-neutral-700 hover:text-black hover:bg-neutral-50 font-medium text-xs px-3.5 py-2.5 rounded-xl flex items-center justify-between transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
@@ -512,8 +582,18 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
                 {/* Left: User Info */}
                 <div className="flex items-center gap-4 sm:gap-5">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-neutral-950 text-white flex items-center justify-center font-bold text-2xl sm:text-3xl border-2 border-white shadow-sm shrink-0">
-                    <span className="font-mono uppercase">{profile.name.charAt(0)}</span>
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-neutral-950 text-white flex items-center justify-center font-bold text-2xl sm:text-3xl border-2 border-white shadow-sm shrink-0 overflow-hidden relative">
+                    {(profile.image || profile.googleImage) && !heroAvatarError ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profile.image || profile.googleImage || ""}
+                        alt={profile.name}
+                        className="w-full h-full object-cover"
+                        onError={() => setHeroAvatarError(true)}
+                      />
+                    ) : (
+                      <span className="font-mono uppercase">{profile.name.charAt(0)}</span>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
@@ -552,7 +632,7 @@ export default function ProfilePage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsEditProfileOpen(true)}
+                      onClick={handleOpenEditProfile}
                       className="bg-white hover:bg-neutral-50 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 rounded-xl border-neutral-200"
                     >
                       <MaterialIcon name="edit" size={14} />
@@ -1141,6 +1221,62 @@ export default function ProfilePage() {
             )}
 
             <form onSubmit={handleUpdateProfile} className="space-y-4 text-xs">
+              {/* Profile Photo Editor Section */}
+              <div className="flex items-center gap-4 p-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden bg-neutral-900 text-white flex items-center justify-center font-bold text-xl shrink-0 border-2 border-white shadow-xs">
+                  {(() => {
+                    const preview = isAvatarRemoved
+                      ? profile.googleImage || null
+                      : editAvatarPreview || profile.image || profile.googleImage || null;
+
+                    return preview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={preview}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="font-mono uppercase">{editName.trim().charAt(0) || "U"}</span>
+                    );
+                  })()}
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-900">
+                    Profile Photo
+                  </label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 py-1.5 px-3 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-900 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-colors shadow-2xs">
+                      <MaterialIcon name="upload" size={14} />
+                      <span>{editAvatarPreview || profile.image ? "Change Photo" : "Upload Photo"}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleEditAvatarChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {(profile.image || editAvatarPreview) && !isAvatarRemoved && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveCustomAvatar}
+                        className="inline-flex items-center gap-1 py-1.5 px-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-[11px] font-bold uppercase tracking-wider rounded-xl transition-colors"
+                      >
+                        <MaterialIcon name="delete" size={14} />
+                        <span>Remove Photo</span>
+                      </button>
+                    )}
+                  </div>
+                  {editAvatarError && (
+                    <p className="text-[10px] text-rose-600 font-medium">{editAvatarError}</p>
+                  )}
+                  <p className="text-[10px] text-neutral-400">
+                    Supported formats: JPEG, PNG, WebP (Max 2MB)
+                    {profile.googleImage && isAvatarRemoved && " · Will display your linked Google photo"}
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label className="block font-bold uppercase tracking-wider text-neutral-900 mb-1">
                   Full Name *

@@ -161,11 +161,28 @@ export const Header: React.FC = () => {
             {/* User Account / Profile */}
             <Link
               href={session?.user ? "/profile" : "/login"}
-              className="p-1.5 hover:text-neutral-600 flex items-center gap-1.5 transition-colors"
+              className="p-1 hover:text-neutral-600 flex items-center gap-1.5 transition-colors"
               title={session?.user ? "My Profile" : "Sign In"}
               aria-label="User Account"
             >
-              <MaterialIcon name="person" size="md" />
+              {session?.user?.image ? (
+                <div className="w-7 h-7 rounded-full overflow-hidden relative border border-neutral-300 bg-neutral-900 text-white flex items-center justify-center shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || "User Avatar"}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
+                  />
+                  <span className="font-mono text-[11px] font-bold uppercase select-none">
+                    {(session.user.name || "U").charAt(0)}
+                  </span>
+                </div>
+              ) : (
+                <MaterialIcon name="person" size="md" />
+              )}
               {session?.user && (
                 <span className="hidden xl:inline text-xs font-bold uppercase truncate max-w-[80px]">
                   {session.user.name?.split(" ")[0]}
@@ -235,8 +252,25 @@ export const Header: React.FC = () => {
               className="flex items-center justify-between text-xs font-bold tracking-wider uppercase text-stitch-primary py-2 border-b border-stitch-border"
             >
               <span className="flex items-center gap-2">
-                <MaterialIcon name="person" size="sm" />
-                {session?.user ? "My Profile" : "Sign In"}
+                {session?.user?.image ? (
+                  <div className="w-5 h-5 rounded-full overflow-hidden relative border border-neutral-300 bg-neutral-900 text-white flex items-center justify-center shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || "User Avatar"}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                    <span className="font-mono text-[9px] font-bold uppercase select-none">
+                      {(session.user.name || "U").charAt(0)}
+                    </span>
+                  </div>
+                ) : (
+                  <MaterialIcon name="person" size="sm" />
+                )}
+                {session?.user ? `My Profile (${session.user.name?.split(" ")[0]})` : "Sign In"}
               </span>
               <MaterialIcon name="chevron_right" size="sm" className="text-neutral-400" />
             </Link>
