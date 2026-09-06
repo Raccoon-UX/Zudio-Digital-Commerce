@@ -1,8 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Kaushan+Script&family=Geist:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.font-brush {
+  font-family: 'Kaushan Script', 'Caveat', cursive, sans-serif;
+}
 
 :root {
   --font-geist: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

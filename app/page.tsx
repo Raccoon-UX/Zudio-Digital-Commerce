@@ -189,8 +189,8 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Major Editorial Hero Section (Split Composition matching Reference) */}
-      <section className="relative w-full overflow-hidden bg-[#D6D2CE] text-neutral-900 border-b border-neutral-200">
-        <div className="relative min-h-[480px] sm:min-h-[540px] md:min-h-[600px] lg:min-h-[660px] flex items-center">
+      <section className="relative w-full overflow-hidden bg-[#D4CEC8] text-neutral-900 border-b border-neutral-200">
+        <div className="relative min-h-[380px] sm:min-h-[420px] md:min-h-[460px] lg:min-h-[490px] xl:min-h-[520px] flex items-center">
           {/* Background Lifestyle Image from public/homepage.png */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -199,152 +199,138 @@ export default async function HomePage() {
               fill
               priority
               sizes="100vw"
-              className="object-cover object-[center_right] md:object-right"
+              className="object-cover object-[70%_center] sm:object-[68%_center] lg:object-[64%_center]"
             />
-            {/* Soft gradient on small screens to ensure text legibility over models */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#D6D2CE]/95 via-[#D6D2CE]/70 to-transparent z-[1] md:hidden" />
+            {/* Soft warm gradient on small screens to guarantee crisp text legibility over models */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#D6D0CA]/95 via-[#D6D0CA]/75 to-transparent z-[1] md:hidden" />
           </div>
 
-          <Container size="xl" className="relative z-10 w-full py-12 sm:py-16 md:py-20">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-              {/* Left Editorial Content Block */}
-              <div className="md:col-span-7 lg:col-span-6 space-y-4 sm:space-y-5">
-                {/* Eyebrow Label */}
-                <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-black tracking-[0.22em] uppercase text-neutral-900 select-none">
-                  <span>NEW COLLECTION 2026 / 2027</span>
-                </div>
-
-                {/* Massive Bold Headline (NEW SEASON. in Black, NEW ENERGY. in White) */}
-                <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-[80px] font-black uppercase tracking-tight leading-[0.88] select-none">
-                  <span className="block text-neutral-950">NEW SEASON.</span>
-                  <span className="block text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-                    NEW ENERGY.
-                  </span>
-                </h1>
-
-                {/* Supporting Editorial Paragraph */}
-                <p className="text-xs sm:text-sm md:text-base text-neutral-800 font-medium leading-relaxed max-w-md">
-                  Discover everyday styles made for you. Trending silhouettes, breathable fabrics, and uncompromised value.
-                </p>
-
-                {/* CTA Buttons with Directional Arrows */}
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <Link href="/categories/women">
-                    <Button
-                      size="lg"
-                      className="bg-neutral-950 text-white hover:bg-neutral-800 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-4 shadow-lg flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
-                    >
-                      <span>SHOP WOMEN</span>
-                      <MaterialIcon name="arrow_forward" size="sm" />
-                    </Button>
-                  </Link>
-
-                  <Link href="/categories/men">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="bg-[#E7E5E4]/90 text-neutral-950 hover:bg-[#D6D3D1] border border-neutral-400/80 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-4 shadow-sm flex items-center gap-2 transition-transform hover:scale-[1.02] active:scale-95"
-                    >
-                      <span>SHOP MEN</span>
-                      <MaterialIcon name="arrow_forward" size="sm" />
-                    </Button>
-                  </Link>
-                </div>
-
-                {/* Bottom Tagline Strip */}
-                <div className="pt-3">
-                  <p className="text-[11px] font-black tracking-[0.24em] uppercase text-neutral-800/80 select-none">
-                    TRENDING &nbsp;|&nbsp; AFFORDABLE &nbsp;|&nbsp; EVERYDAY FASHION
-                  </p>
-                </div>
+          <Container size="xl" className="relative z-10 w-full py-10 sm:py-12 md:py-14">
+            <div className="max-w-xl lg:max-w-2xl space-y-3 sm:space-y-4">
+              {/* Eyebrow Label */}
+              <div className="text-[11px] sm:text-xs font-bold tracking-[0.24em] uppercase text-black select-none">
+                NEW COLLECTION 2026 / 2027
               </div>
 
-              {/* Right Side Visual Accents & Season Metadata */}
-              <div className="hidden md:flex md:col-span-5 lg:col-span-6 flex-col justify-between items-end h-full min-h-[480px] lg:min-h-[520px] pointer-events-none select-none">
-                {/* Style Lives Here Cursive Typography */}
-                <div className="mt-6 mr-2 lg:mr-8 text-right">
-                  <div className="font-serif italic font-normal text-5xl lg:text-7xl xl:text-[80px] text-neutral-900 leading-[0.85] tracking-tight drop-shadow-sm select-none">
-                    <span className="block">Style</span>
-                    <span className="block pl-6">Lives</span>
-                    <span className="block pl-10">Here</span>
-                  </div>
-                </div>
+              {/* Massive Bold Headline (NEW SEASON. in Black, NEW ENERGY. in White) */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-black uppercase tracking-tight leading-[0.88] select-none">
+                <span className="block text-black">NEW SEASON.</span>
+                <span className="block text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                  NEW ENERGY.
+                </span>
+              </h1>
 
-                {/* Bottom Right Season Metadata */}
-                <div className="text-right pb-3 pr-2 lg:pr-6">
-                  <p className="text-[11px] font-black uppercase tracking-[0.25em] text-neutral-900 leading-none">
-                    ZUDIO
-                  </p>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-800 mt-0.5">
-                    SS&apos;26 —
-                  </p>
-                </div>
+              {/* Supporting Editorial Paragraph */}
+              <p className="text-xs sm:text-sm md:text-[14.5px] text-neutral-800 font-medium leading-relaxed max-w-md">
+                Discover everyday styles made for you. Trending silhouettes, breathable fabrics, and uncompromised value.
+              </p>
+
+              {/* CTA Buttons with Directional Arrows */}
+              <div className="flex items-center gap-3 pt-2 sm:pt-3">
+                <Link href="/categories/women">
+                  <button className="bg-black text-white hover:bg-neutral-800 rounded-md font-bold text-xs uppercase tracking-wider px-6 py-3 shadow-md flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95">
+                    <span>SHOP WOMEN</span>
+                    <MaterialIcon name="arrow_forward" size="sm" />
+                  </button>
+                </Link>
+
+                <Link href="/categories/men">
+                  <button className="bg-[#D2C8BD] text-black hover:bg-[#C5BCAF] border border-black/10 rounded-md font-bold text-xs uppercase tracking-wider px-6 py-3 shadow-xs flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95">
+                    <span>SHOP MEN</span>
+                    <MaterialIcon name="arrow_forward" size="sm" />
+                  </button>
+                </Link>
+              </div>
+
+              {/* Bottom Tagline Strip */}
+              <div className="pt-2 sm:pt-3">
+                <p className="text-[10px] sm:text-[11px] font-black tracking-[0.22em] uppercase text-neutral-800 select-none">
+                  TRENDING &nbsp;|&nbsp; AFFORDABLE &nbsp;|&nbsp; EVERYDAY FASHION
+                </p>
               </div>
             </div>
           </Container>
+
+          {/* Style Lives Here Artistic Brush Script Typography */}
+          <div className="hidden md:block absolute top-6 lg:top-8 right-6 lg:right-12 xl:right-16 select-none pointer-events-none -rotate-[14deg] z-10">
+            <div className="font-brush text-5xl lg:text-7xl xl:text-[80px] text-[#111111] leading-[0.8] tracking-tight text-right">
+              <span className="block">Style</span>
+              <span className="block pr-3 lg:pr-5">Lives</span>
+              <span className="block pr-6 lg:pr-10">Here</span>
+            </div>
+          </div>
+
+          {/* Bottom Right Season Metadata */}
+          <div className="hidden md:block absolute bottom-6 lg:bottom-8 right-6 lg:right-12 xl:right-16 text-right select-none pointer-events-none z-10">
+            <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-[0.25em] text-neutral-900 leading-none">
+              ZUDIO
+            </p>
+            <p className="text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-800 mt-1">
+              SS&apos;26 —
+            </p>
+          </div>
         </div>
       </section>
 
-
       {/* 3. Bottom Benefits / Service Strip (Matching Reference 4-Column Strip) */}
-      <section className="bg-white border-b border-neutral-200 py-6 sm:py-7">
+      <section className="bg-white border-b border-neutral-200 py-4 sm:py-5">
         <Container size="xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-neutral-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-neutral-200">
             {/* 1. Free Delivery */}
-            <div className="flex items-center gap-3.5 sm:px-4 pt-3 sm:pt-0">
-              <div className="w-11 h-11 rounded-full bg-sky-50 border border-sky-100 text-sky-600 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="flex items-center gap-3.5 px-3 sm:px-6 py-2 sm:py-0">
+              <div className="w-11 h-11 rounded-xl bg-sky-50 border border-sky-100 text-sky-500 flex items-center justify-center shrink-0 shadow-2xs">
                 <MaterialIcon name="local_shipping" size="md" />
               </div>
               <div>
-                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-neutral-900">
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-950">
                   Free Delivery
                 </h4>
-                <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
+                <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5">
                   On orders above ₹{APP_CONFIG.freeDeliveryThreshold}
                 </p>
               </div>
             </div>
 
-            {/* 2. In-Store Holds / Easy Returns */}
-            <div className="flex items-center gap-3.5 sm:px-4 pt-3 sm:pt-0">
-              <div className="w-11 h-11 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs">
-                <MaterialIcon name="storefront" size="md" />
+            {/* 2. Easy Returns */}
+            <div className="flex items-center gap-3.5 px-3 sm:px-6 py-2 sm:py-0">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                <MaterialIcon name="assignment_return" size="md" />
               </div>
               <div>
-                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-neutral-900">
-                  In-Store Holds
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-950">
+                  Easy Returns
                 </h4>
-                <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
-                  2-hr trial reservation
+                <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5">
+                  Hassle-free shopping
                 </p>
               </div>
             </div>
 
             {/* 3. Secure Payments */}
-            <div className="flex items-center gap-3.5 sm:px-4 pt-3 sm:pt-0">
-              <div className="w-11 h-11 rounded-full bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-xs">
+            <div className="flex items-center gap-3.5 px-3 sm:px-6 py-2 sm:py-0">
+              <div className="w-11 h-11 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-2xs">
                 <MaterialIcon name="verified_user" size="md" />
               </div>
               <div>
-                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-neutral-900">
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-950">
                   Secure Payments
                 </h4>
-                <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
-                  Razorpay & UPI Supported
+                <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5">
+                  100% safe &amp; secure
                 </p>
               </div>
             </div>
 
-            {/* 4. 100 Stores */}
-            <div className="flex items-center gap-3.5 sm:px-4 pt-3 sm:pt-0">
-              <div className="w-11 h-11 rounded-full bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-xs">
+            {/* 4. 100+ Stores */}
+            <div className="flex items-center gap-3.5 px-3 sm:px-6 py-2 sm:py-0">
+              <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
                 <MaterialIcon name="location_on" size="md" />
               </div>
               <div>
-                <h4 className="text-xs sm:text-sm font-black uppercase tracking-tight text-neutral-900">
-                  100 Stores
+                <h4 className="text-xs sm:text-sm font-bold text-neutral-950">
+                  100+ Stores
                 </h4>
-                <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
+                <p className="text-[11px] sm:text-xs text-neutral-500 font-medium mt-0.5">
                   Across India
                 </p>
               </div>
