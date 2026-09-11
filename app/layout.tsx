@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { WebsiteLoader } from "@/components/ui/WebsiteLoader";
+import { ImportantNoticeModal } from "@/components/ui/ImportantNoticeModal";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -80,6 +81,7 @@ export default function RootLayout({
           }}
         />
         <WebsiteLoader />
+        <ImportantNoticeModal />
         <SessionProvider>
           <Header />
           <main className="flex-1">{children}</main>
