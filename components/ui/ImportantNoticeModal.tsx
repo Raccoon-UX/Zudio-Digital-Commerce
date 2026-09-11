@@ -10,7 +10,8 @@ export const ImportantNoticeModal: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [hasDeclined, setHasDeclined] = useState(false);
-  const primaryButtonRef = useRef<HTMLButtonElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const modalContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,10 +30,18 @@ export const ImportantNoticeModal: React.FC = () => {
     if (isOpen && !isClosing) {
       document.body.style.overflow = "hidden";
 
-      // Focus primary button for accessibility
+      // Always reset scroll position to the very top on open
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+
+      // Focus modal container without scrolling
       const timer = setTimeout(() => {
-        primaryButtonRef.current?.focus();
-      }, 100);
+        modalContainerRef.current?.focus({ preventScroll: true });
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+      }, 50);
 
       // Prevent escape key from bypassing the mandatory notice
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,181 +98,189 @@ export const ImportantNoticeModal: React.FC = () => {
       aria-modal="true"
       aria-labelledby="important-notice-title"
       aria-describedby="important-notice-desc"
-      className={`fixed inset-0 z-[99990] bg-black/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto transition-opacity duration-250 ease-out ${
+      className={`fixed inset-0 z-[99990] bg-black/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 md:p-6 overflow-y-auto transition-opacity duration-250 ease-out ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
+      {/* Outer Card with Pristine Rounded Corners & Clipped Overflow */}
       <div
-        className={`relative w-full max-w-xl md:max-w-[620px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-7 md:p-8 text-neutral-900 my-auto border border-neutral-100 max-h-[92vh] overflow-y-auto scrollbar-thin transition-transform duration-250 ease-out ${
+        ref={modalContainerRef}
+        tabIndex={-1}
+        className={`relative w-full max-w-xl md:max-w-[580px] bg-white rounded-3xl shadow-2xl text-neutral-900 my-auto border border-neutral-100 overflow-hidden outline-none transition-transform duration-250 ease-out ${
           isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
         }`}
       >
-        {hasDeclined ? (
-          /* Declined Exit State */
-          <div className="py-8 text-center space-y-4">
-            <div className="w-14 h-14 rounded-full bg-neutral-100 text-neutral-600 flex items-center justify-center mx-auto">
-              <MaterialIcon name="logout" size="lg" />
-            </div>
-            <h2 className="text-xl font-bold text-neutral-900">
-              Access Not Entered
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-600 max-w-md mx-auto leading-relaxed">
-              You chose not to enter this independent concept demonstration. You can safely close this browser window or tab.
-            </p>
-            <div className="pt-4">
-              <button
-                onClick={() => setHasDeclined(false)}
-                className="text-xs font-bold text-neutral-900 underline underline-offset-4 hover:text-neutral-700 cursor-pointer"
-              >
-                Review Notice Again
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Main Notice Content */
-          <>
-            {/* Top Warning Badge */}
-            <div className="flex justify-center mb-3 sm:mb-4">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shadow-2xs">
-                <MaterialIcon name="warning" size="lg" filled />
+        {/* Inner Scrollable Viewport with Hidden Scrollbar & Top Alignment */}
+        <div
+          ref={scrollContainerRef}
+          className="max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 md:p-7 overscroll-contain scrollbar-none"
+        >
+          {hasDeclined ? (
+            /* Declined Exit State */
+            <div className="py-8 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-neutral-100 text-neutral-600 flex items-center justify-center mx-auto">
+                <MaterialIcon name="logout" size="lg" />
               </div>
-            </div>
-
-            {/* Title & Subtitle */}
-            <div className="text-center mb-5 sm:mb-6">
-              <h2
-                id="important-notice-title"
-                className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-tight text-neutral-950"
-              >
-                IMPORTANT NOTICE
+              <h2 className="text-xl font-bold text-neutral-900">
+                Access Not Entered
               </h2>
-              <p
-                id="important-notice-desc"
-                className="text-xs sm:text-[13px] font-bold text-rose-600 mt-1"
-              >
-                This is an Independent Concept Demo — Not an Official Zudio Website
+              <p className="text-xs sm:text-sm text-neutral-600 max-w-md mx-auto leading-relaxed">
+                You chose not to enter this independent concept demonstration. You can safely close this browser window or tab.
               </p>
+              <div className="pt-4">
+                <button
+                  onClick={() => setHasDeclined(false)}
+                  className="text-xs font-bold text-neutral-900 underline underline-offset-4 hover:text-neutral-700 cursor-pointer"
+                >
+                  Review Notice Again
+                </button>
+              </div>
             </div>
-
-            {/* 5 Information Sections */}
-            <div className="space-y-3.5 sm:space-y-4">
-              {/* 1. Independent Project */}
-              <div className="flex items-start gap-3 sm:gap-3.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <MaterialIcon name="person" size="sm" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-neutral-950 leading-tight">
-                    Independent Project
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-600 leading-relaxed mt-0.5">
-                    This website is an independently developed technology concept and demonstration prototype created by Sujal Verma to explore how digital commerce could be connected with physical retail stores.
-                  </p>
+          ) : (
+            /* Main Notice Content */
+            <>
+              {/* Top Warning Badge */}
+              <div className="flex justify-center mb-2.5 sm:mb-3">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shadow-2xs">
+                  <MaterialIcon name="warning" size="md" filled />
                 </div>
               </div>
 
-              {/* 2. Not Affiliated with Zudio / Trent */}
-              <div className="flex items-start gap-3 sm:gap-3.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <MaterialIcon name="account_balance" size="sm" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-neutral-950 leading-tight">
-                    Not Affiliated with Zudio / Trent
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-600 leading-relaxed mt-0.5">
-                    This website is NOT owned, operated, sponsored, endorsed, or officially affiliated with Zudio or Trent Limited.
-                  </p>
-                </div>
+              {/* Title & Subtitle */}
+              <div className="text-center mb-4 sm:mb-5">
+                <h2
+                  id="important-notice-title"
+                  className="text-lg sm:text-xl md:text-[22px] font-black uppercase tracking-tight text-neutral-950"
+                >
+                  IMPORTANT NOTICE
+                </h2>
+                <p
+                  id="important-notice-desc"
+                  className="text-xs sm:text-[12.5px] font-bold text-rose-600 mt-0.5"
+                >
+                  This is an Independent Concept Demo — Not an Official Zudio Website
+                </p>
               </div>
 
-              {/* 3. Brand Assets */}
-              <div className="flex items-start gap-3 sm:gap-3.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <MaterialIcon name="copyright" size="sm" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-neutral-950 leading-tight">
-                    Brand Assets
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-600 leading-relaxed mt-0.5">
-                    The Zudio name, logo, brand identity, and other related trademarks/assets belong to their respective owners and are used here solely for the purpose of demonstrating this independent concept.
-                  </p>
-                </div>
-              </div>
-
-              {/* 4. Demo Data Only */}
-              <div className="flex items-start gap-3 sm:gap-3.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <MaterialIcon name="database" size="sm" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-neutral-950 leading-tight">
-                    Demo Data Only
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-600 leading-relaxed mt-0.5">
-                    This prototype does not use Zudio/Trent&apos;s internal systems, proprietary data, or live inventory. Product, store, and inventory information shown on this website is for demonstration purposes only.
-                  </p>
-                </div>
-              </div>
-
-              {/* 5. Response from Zudio */}
-              <div className="flex items-start gap-3 sm:gap-3.5">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <MaterialIcon name="mail" size="sm" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xs sm:text-sm font-bold text-neutral-950 leading-tight">
-                    Response from Zudio
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-neutral-600 leading-relaxed mt-0.5">
-                    I previously shared this concept with Zudio/Trent for consideration. Their response stated that they would not be able to partner with me at this time.
-                  </p>
-                  {/* Email Quote Callout Box */}
-                  <div className="bg-rose-50/70 border-l-[3.5px] border-rose-400 rounded-r-lg p-2.5 sm:p-3 mt-2">
-                    <p className="text-[11px] sm:text-xs italic text-neutral-700 leading-snug">
-                      &ldquo;Thank you for reaching out to us. Unfortunately, we will not be able to partner with you at this time.&rdquo;
+              {/* 5 Information Sections */}
+              <div className="space-y-3 sm:space-y-3.5">
+                {/* 1. Independent Project */}
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <MaterialIcon name="person" size="sm" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-[13px] font-bold text-neutral-950 leading-tight">
+                      Independent Project
+                    </h3>
+                    <p className="text-[11px] sm:text-[11.5px] text-neutral-600 leading-relaxed mt-0.5">
+                      This website is an independently developed technology concept and demonstration prototype created by Sujal Verma to explore how digital commerce could be connected with physical retail stores.
                     </p>
-                    <span className="text-[10px] sm:text-[11px] font-semibold text-neutral-500 mt-1 block">
-                      — Team Zudio (Email, 6 Sep 2026)
-                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Not Affiliated with Zudio / Trent */}
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <MaterialIcon name="account_balance" size="sm" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-[13px] font-bold text-neutral-950 leading-tight">
+                      Not Affiliated with Zudio / Trent
+                    </h3>
+                    <p className="text-[11px] sm:text-[11.5px] text-neutral-600 leading-relaxed mt-0.5">
+                      This website is NOT owned, operated, sponsored, endorsed, or officially affiliated with Zudio or Trent Limited.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Brand Assets */}
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <MaterialIcon name="copyright" size="sm" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-[13px] font-bold text-neutral-950 leading-tight">
+                      Brand Assets
+                    </h3>
+                    <p className="text-[11px] sm:text-[11.5px] text-neutral-600 leading-relaxed mt-0.5">
+                      The Zudio name, logo, brand identity, and other related trademarks/assets belong to their respective owners and are used here solely for the purpose of demonstrating this independent concept.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 4. Demo Data Only */}
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <MaterialIcon name="database" size="sm" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-[13px] font-bold text-neutral-950 leading-tight">
+                      Demo Data Only
+                    </h3>
+                    <p className="text-[11px] sm:text-[11.5px] text-neutral-600 leading-relaxed mt-0.5">
+                      This prototype does not use Zudio/Trent&apos;s internal systems, proprietary data, or live inventory. Product, store, and inventory information shown on this website is for demonstration purposes only.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 5. Response from Zudio */}
+                <div className="flex items-start gap-3 sm:gap-3.5">
+                  <div className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <MaterialIcon name="mail" size="sm" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xs sm:text-[13px] font-bold text-neutral-950 leading-tight">
+                      Response from Zudio
+                    </h3>
+                    <p className="text-[11px] sm:text-[11.5px] text-neutral-600 leading-relaxed mt-0.5">
+                      I previously shared this concept with Zudio/Trent for consideration. Their response stated that they would not be able to partner with me at this time.
+                    </p>
+                    {/* Email Quote Callout Box */}
+                    <div className="bg-rose-50/70 border-l-[3px] border-rose-400 rounded-r-lg p-2.5 mt-1.5">
+                      <p className="text-[11px] sm:text-xs italic text-neutral-700 leading-snug">
+                        &ldquo;Thank you for reaching out to us. Unfortunately, we will not be able to partner with you at this time.&rdquo;
+                      </p>
+                      <span className="text-[10px] sm:text-[10.5px] font-semibold text-neutral-500 mt-1 block">
+                        — Team Zudio (Email, 6 Sep 2026)
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Disclaimer Sentence */}
-            <p className="text-[11px] sm:text-xs text-neutral-500 text-center max-w-lg mx-auto pt-4 pb-2 leading-relaxed">
-              By continuing, you acknowledge that you are viewing an independent technology demonstration and not the official Zudio website.
-            </p>
-
-            {/* Buttons */}
-            <div className="space-y-2 pt-2">
-              <button
-                ref={primaryButtonRef}
-                onClick={handleAccept}
-                className="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs sm:text-sm py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
-              >
-                <span>I Understand &amp; Continue to Demo</span>
-                <MaterialIcon name="arrow_forward" size="sm" />
-              </button>
-
-              <button
-                onClick={handleGoBack}
-                className="w-full bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-6 rounded-xl transition-all active:scale-[0.99] cursor-pointer"
-              >
-                Go Back
-              </button>
-            </div>
-
-            {/* Footer */}
-            <div className="text-center pt-3 sm:pt-4 border-t border-neutral-100 mt-3 sm:mt-4">
-              <p className="text-[10px] sm:text-[11px] text-neutral-400 font-medium">
-                © 2026 Sujal Verma · Independent Technology Concept
+              {/* Disclaimer Sentence */}
+              <p className="text-[11px] sm:text-xs text-neutral-500 text-center max-w-lg mx-auto pt-3 pb-1.5 leading-relaxed">
+                By continuing, you acknowledge that you are viewing an independent technology demonstration and not the official Zudio website.
               </p>
-            </div>
-          </>
-        )}
+
+              {/* Buttons */}
+              <div className="space-y-2 pt-1.5">
+                <button
+                  onClick={handleAccept}
+                  className="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-xs sm:text-sm py-3 sm:py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all hover:scale-[1.008] active:scale-[0.99] cursor-pointer"
+                >
+                  <span>I Understand &amp; Continue to Demo</span>
+                  <MaterialIcon name="arrow_forward" size="sm" />
+                </button>
+
+                <button
+                  onClick={handleGoBack}
+                  className="w-full bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-6 rounded-xl transition-all active:scale-[0.99] cursor-pointer"
+                >
+                  Go Back
+                </button>
+              </div>
+
+              {/* Footer */}
+              <div className="text-center pt-2.5 sm:pt-3 border-t border-neutral-100 mt-2.5 sm:mt-3">
+                <p className="text-[10px] sm:text-[10.5px] text-neutral-400 font-medium">
+                  © 2026 Sujal Verma · Independent Technology Concept
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
