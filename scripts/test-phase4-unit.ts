@@ -72,7 +72,7 @@ function runUnitTests() {
   const mockStores = [
     {
       id: "store_blr",
-      name: "Zudio Indiranagar",
+      name: "ZOA Indiranagar",
       city: "Bengaluru",
       inventories: [
         { variantId: "var_1", quantity: 5, reservedQuantity: 0 },
@@ -81,7 +81,7 @@ function runUnitTests() {
     },
     {
       id: "store_mum",
-      name: "Zudio Bandra",
+      name: "ZOA Bandra",
       city: "Mumbai",
       inventories: [
         { variantId: "var_1", quantity: 10, reservedQuantity: 2 }, // 8 available

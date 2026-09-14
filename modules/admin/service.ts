@@ -493,7 +493,7 @@ export async function getAdminOrderDetail(orderId: string) {
       unitPrice: Number(item.unitPrice),
       quantity: item.quantity,
       subtotal: Number(item.subtotal),
-      imageUrl: item.variant?.product?.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=Zudio",
+      imageUrl: item.variant?.product?.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=ZOA",
     })),
   };
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { APP_CONFIG, FOOTER_LINKS } from "@/lib/constants";
-import { ZudioLogo } from "./ZudioLogo";
+import { ZoaLogo } from "./ZoaLogo";
 
 export const Footer: React.FC = () => {
   return (
@@ -72,7 +72,7 @@ export const Footer: React.FC = () => {
             {/* Brand Column */}
             <div className="md:col-span-4 space-y-4">
               <Link href="/" className="inline-flex items-center gap-2">
-                <ZudioLogo variant="light" className="w-[104px] h-auto text-white" />
+                <ZoaLogo variant="light" className="w-[104px] h-auto text-white" />
               </Link>
               <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
                 Effortless style for everyday life. Shop the latest trends in high-street fashion with uncompromised quality and unbeatable value.
@@ -149,7 +149,7 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="mt-12 pt-8 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-            <p>© {new Date().getFullYear()} Zudio Digital Commerce Concept Pilot. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} ZOA Digital Commerce. All rights reserved.</p>
             <p className="text-[11px] text-neutral-500">
               Modern high-street fashion e-commerce experience.
             </p>

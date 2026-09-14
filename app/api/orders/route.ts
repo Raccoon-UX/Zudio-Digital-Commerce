@@ -26,7 +26,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const sessionToken = request.cookies.get("zudio_cart_session")?.value;
+    const sessionToken = request.cookies.get("zoa_cart_session")?.value || request.cookies.get("zudio_cart_session")?.value;
     const body = await request.json();
 
     const order = await createOrder(body, user?.id, user ? null : sessionToken);

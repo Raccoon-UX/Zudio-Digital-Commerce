@@ -1,8 +1,8 @@
 export const APP_CONFIG = {
-  name: "Zudio Concept Pilot",
+  name: "ZOA",
   tagline: "Fashion for Everyday — Online Discovery & In-Store Availability",
-  description: "Digital commerce and physical store integration prototype for everyday fashion.",
-  disclaimer: "Unofficial concept prototype for demonstration purposes only. Not affiliated with or endorsed by Trent Ltd / Zudio.",
+  description: "Modern omnichannel digital commerce and physical store integration for everyday fashion.",
+  disclaimer: "Everyday fashion digital commerce experience.",
   currency: "INR",
   currencySymbol: "₹",
   deliveryFee: 49,

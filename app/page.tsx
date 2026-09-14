@@ -195,7 +195,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 z-0">
             <Image
               src={HERO_BG_IMAGE}
-              alt="Zudio Fashion Campaign"
+              alt="ZOA Fashion Campaign"
               fill
               priority
               sizes="100vw"
@@ -263,7 +263,7 @@ export default async function HomePage() {
           {/* Bottom Right Season Metadata */}
           <div className="hidden md:block absolute bottom-6 lg:bottom-8 right-4 sm:right-6 md:right-8 lg:right-10 xl:right-14 text-right select-none pointer-events-none z-10">
             <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-[0.25em] text-neutral-900 leading-none">
-              ZUDIO
+              ZOA
             </p>
             <p className="text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-800 mt-1">
               SS&apos;26 —

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    let sessionToken = request.cookies.get("zudio_cart_session")?.value;
+    let sessionToken = request.cookies.get("zoa_cart_session")?.value || request.cookies.get("zudio_cart_session")?.value;
     let shouldSetCookie = false;
 
     if (!user && !sessionToken) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (shouldSetCookie && sessionToken) {
       response.cookies.set({
-        name: "zudio_cart_session",
+        name: "zoa_cart_session",
         value: sessionToken,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

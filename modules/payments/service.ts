@@ -91,7 +91,7 @@ export async function createRazorpayPaymentOrder(
     keyId,
     customer: {
       name: order.address?.fullName || "Valued Customer",
-      email: order.guestEmail || "customer@zudiopilot.com",
+      email: order.guestEmail || "customer@zoapilot.com",
       phone: order.address?.phone || "",
     },
   };

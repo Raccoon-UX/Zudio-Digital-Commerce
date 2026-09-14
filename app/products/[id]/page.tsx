@@ -35,10 +35,10 @@ const getCachedProduct = cache(async (idOrSlug: string) => {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const product = await getCachedProduct(params.id);
   if (!product) {
-    return { title: "Product Not Found | Zudio" };
+    return { title: "Product Not Found | ZOA" };
   }
   return {
-    title: `${product.name} | Zudio`,
+    title: `${product.name} | ZOA`,
     description: product.description || `Buy ${product.name} at best price online.`,
   };
 }

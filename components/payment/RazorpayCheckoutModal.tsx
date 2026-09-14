@@ -55,9 +55,9 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
           key: orderData.keyId,
           amount: orderData.amount,
           currency: orderData.currency,
-          name: "Zudio Concept Pilot",
+          name: "ZOA Concept Pilot",
           description: `Payment for Order #${orderData.orderNumber}`,
-          image: "https://placehold.co/100x100/1A1A1A/FFFFFF/png?text=ZUDIO",
+          image: "https://placehold.co/100x100/1A1A1A/FFFFFF/png?text=ZOA",
           order_id: orderData.razorpayOrderId.startsWith("order_test_")
             ? undefined
             : orderData.razorpayOrderId,

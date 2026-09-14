@@ -1,4 +1,4 @@
-# Zudio Digital Commerce — Omnichannel Retail Architecture & Concept Pilot
+# ZOA Digital Commerce — Omnichannel Retail Architecture & Concept Pilot
 
 > **Enterprise Concept Prototype:** End-to-end digital commerce and physical store integration platform designed for high-velocity, trend-driven fashion retail.
 
@@ -34,7 +34,7 @@
 
 ## 🌟 Executive Overview & Vision
 
-**Zudio Digital Commerce (Concept Pilot)** addresses the unique operational and consumer dynamics of high-volume, trend-driven, value-priced fashion retail. 
+**ZOA Digital Commerce (Concept Pilot)** addresses the unique operational and consumer dynamics of high-volume, trend-driven, value-priced fashion retail. 
 
 Unlike traditional pure-play e-commerce platforms, this platform unifies **Online Direct-to-Consumer Shopping** with **Physical Retail Store Infrastructure**, bridging digital discovery with instant brick-and-mortar fulfillment:
 
@@ -158,7 +158,7 @@ The platform utilizes a **Multi-Tier Caching Architecture** combining Next.js 14
 
 ## 🗄️ Data Model & Database Schema
 
-The database schema is defined in [prisma/schema.prisma](file:///c:/Users/Sujal%20Verma/.gemini/antigravity/scratch/zudio/prisma/schema.prisma):
+The database schema is defined in [prisma/schema.prisma](file:///c:/Users/Sujal%20Verma/.gemini/antigravity/scratch/ZOA/prisma/schema.prisma):
 
 ```mermaid
 erDiagram
@@ -258,10 +258,10 @@ When initialized with seed data (`DEMO_SEED_ENABLED=true`), the following accoun
 
 | Role | Email Address | Default Password | Authorized Portals & Permissions |
 | :--- | :--- | :--- | :--- |
-| **Executive Admin** | `admin@zudio.demo` | `Admin@12345` | Full access to `/admin` dashboard, inventory adjustment, order status updates, audit logs, customer role management. |
-| **Store Staff (POS)** | `staff.blr@zudio.demo` | `Staff@12345` | Scoped to **Zudio Indiranagar (Bengaluru)** at `/staff/reservations`. Pickup pass verification, status transition, stock handover. |
-| **Store Staff (BOM)** | `staff.bom@zudio.demo` | `Staff@12345` | Scoped to **Zudio Linking Road (Mumbai)**. |
-| **Online Customer** | `customer@zudio.demo` | `Customer@12345` | Standard customer account. Cart persistence, order history (`/orders`), wishlist (`/wishlist`), profile address book (`/profile`). |
+| **Executive Admin** | `admin@zoa.demo` | `Admin@12345` | Full access to `/admin` dashboard, inventory adjustment, order status updates, audit logs, customer role management. |
+| **Store Staff (POS)** | `staff.blr@zoa.demo` | `Staff@12345` | Scoped to **ZOA Indiranagar (Bengaluru)** at `/staff/reservations`. Pickup pass verification, status transition, stock handover. |
+| **Store Staff (BOM)** | `staff.bom@zoa.demo` | `Staff@12345` | Scoped to **ZOA Linking Road (Mumbai)**. |
+| **Online Customer** | `customer@zoa.demo` | `Customer@12345` | Standard customer account. Cart persistence, order history (`/orders`), wishlist (`/wishlist`), profile address book (`/profile`). |
 | **Guest Shopper** | *(No Account)* | *(No Password)* | Session-based cart, guest checkout with cryptographic `guestToken`, anonymous in-store holds. |
 
 ---
@@ -271,25 +271,25 @@ When initialized with seed data (`DEMO_SEED_ENABLED=true`), the following accoun
 ### Scenario A: Omnichannel Customer Discovery & 2-Hour In-Store Hold (8 min)
 1. **Catalog Exploration:** Navigate to `/products` and filter by **Men** $\rightarrow$ **Jackets** $\rightarrow$ Size **L**.
 2. **Live Store Availability:** Open a product detail page (e.g. *Men's Essential Jackets*) and click **"Check Store Stock"**. Observe live real-time stock levels across city stores.
-3. **Place In-Store Hold:** Select **Zudio Indiranagar (Bengaluru)** and click **"Reserve for Store Pickup"**.
-4. **Hold Pass Generation:** Receive an immediate confirmation slip with pickup code (e.g. `ZUD-8F2Q`) and a live **2-hour countdown timer**.
+3. **Place In-Store Hold:** Select **ZOA Indiranagar (Bengaluru)** and click **"Reserve for Store Pickup"**.
+4. **Hold Pass Generation:** Receive an immediate confirmation slip with pickup code (e.g. `ZOA-8F2Q`) and a live **2-hour countdown timer**.
 5. **Database Invariant:** Store inventory automatically increases `reservedQuantity` by 1 and decreases available units by 1.
 
 ### Scenario B: Store Associate POS Handover (5 min)
-1. **Associate Login:** Sign in as `staff.blr@zudio.demo` (`Staff@12345`) and navigate to `/staff/reservations`.
-2. **Pickup Code Lookup:** Enter the customer's pickup code (`ZUD-8F2Q`).
+1. **Associate Login:** Sign in as `staff.blr@zoa.demo` (`Staff@12345`) and navigate to `/staff/reservations`.
+2. **Pickup Code Lookup:** Enter the customer's pickup code (`ZOA-8F2Q`).
 3. **Stage 1 (Mark Ready):** Associate locates the garment on the rack and clicks **"Mark Ready for Pickup"** (status $\rightarrow$ `READY_FOR_PICKUP`).
 4. **Stage 2 (Complete Handover):** Customer arrives at counter. Associate clicks **"Complete Handover"** (status $\rightarrow$ `COLLECTED`).
 5. **Stock Deduction:** PostgreSQL transaction atomically decrements physical store quantity by 1 and reserved quantity by 1.
 
 ### Scenario C: Online E-Commerce & Razorpay Checkout (5 min)
-1. **Guest Cart & Merging:** Add items to cart as a guest. Click **Sign In** as `customer@zudio.demo`. Items instantly merge into the authenticated cart.
+1. **Guest Cart & Merging:** Add items to cart as a guest. Click **Sign In** as `customer@zoa.demo`. Items instantly merge into the authenticated cart.
 2. **Single-Store Allocation:** Proceed to `/checkout`. Select a delivery address; the server calculates the nearest store with 100% stock fulfillment.
 3. **Razorpay Sandbox Payment:** Click **"Pay with Razorpay"**. Complete test checkout using Razorpay test credentials.
 4. **Cryptographic Confirmation:** Server verifies HMAC SHA-256 signature, commits inventory, and transitions order to **`CONFIRMED`**.
 
 ### Scenario D: Executive Operations & Invariant Management (5 min)
-1. **KPI Dashboard:** Sign in as `admin@zudio.demo` and navigate to `/admin`. Review Gross Paid Revenue and active order distributions.
+1. **KPI Dashboard:** Sign in as `admin@zoa.demo` and navigate to `/admin`. Review Gross Paid Revenue and active order distributions.
 2. **Inventory Matrix:** Navigate to `/admin/inventory`. Attempt to reduce physical inventory below active reserved quantity. Observe instant rejection by the invariant lock.
 3. **Order Lifecycle:** Advance online orders through `CONFIRMED` $\rightarrow$ `PROCESSING` $\rightarrow$ `SHIPPED` $\rightarrow$ `DELIVERED`.
 4. **Audit Trail:** Review `/admin/audit-logs` for immutable timestamped change records.
@@ -337,8 +337,8 @@ npx tsx scripts/audit/test-e2e-business-flows.ts
 
 ### 1. Clone & Install Dependencies
 ```bash
-git clone https://github.com/Raccoon-UX/Zudio-Digital-Commerce.git
-cd Zudio-Digital-Commerce
+git clone https://github.com/Raccoon-UX/ZOA-Digital-Commerce.git
+cd ZOA-Digital-Commerce
 npm install
 ```
 
@@ -347,8 +347,8 @@ Create a `.env` file in the project root:
 
 ```env
 # PostgreSQL Database Connection URL (Direct & Pooled)
-DATABASE_URL="postgresql://postgres:password@localhost:5432/zudio_db"
-DIRECT_URL="postgresql://postgres:password@localhost:5432/zudio_db"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/zoa_db"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/zoa_db"
 
 # NextAuth Configuration
 NEXTAUTH_URL="http://localhost:3000"
@@ -408,7 +408,7 @@ Inspect running services with `docker compose ps` and access the app at `http://
 ## 📂 Project Directory Layout
 
 ```text
-zudio-digital-commerce/
+zoa-digital-commerce/
 ├── app/                              # Next.js 14 App Router (Pages & API Routes)
 │   ├── (auth)/                       # Auth routes (/login, /register)
 │   ├── admin/                        # Executive Admin Portal & KPI Dashboard
@@ -441,7 +441,7 @@ zudio-digital-commerce/
 │   ├── layout.tsx                    # Root application layout
 │   └── page.tsx                      # High-contrast static editorial homepage
 ├── components/                       # Reusable UI & Feature Components
-│   ├── layout/                       # Header, Footer, MobileNav, ZudioLogo
+│   ├── layout/                       # Header, Footer, MobileNav, ZoaLogo
 │   ├── product/                      # ProductCard, ProductGrid, Filters, Clients
 │   ├── providers/                    # NextAuth & Theme Providers
 │   └── ui/                           # Button, Badge, Modal, Container, Loader
