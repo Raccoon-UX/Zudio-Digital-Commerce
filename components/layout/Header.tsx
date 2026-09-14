@@ -98,7 +98,7 @@ export const Header: React.FC = () => {
             </button>
 
             <Link href="/" className="flex items-center shrink-0 group" aria-label="ZOA Home">
-              <ZoaLogo className="w-[92px] sm:w-[104px] lg:w-[114px] h-auto text-neutral-950 transition-transform group-hover:scale-[1.02]" />
+              <ZoaLogo className="w-[110px] sm:w-[124px] lg:w-[136px] h-auto text-neutral-950 transition-transform group-hover:scale-[1.02]" />
             </Link>
           </div>
 

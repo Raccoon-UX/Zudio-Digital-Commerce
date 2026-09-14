@@ -10,10 +10,10 @@ interface ZoaWordmarkProps {
 }
 
 const sizeClasses = {
-  sm: "h-6 w-auto",
-  md: "h-8 w-auto",
-  lg: "h-12 w-auto",
-  xl: "h-14 sm:h-16 md:h-20 w-auto",
+  sm: "h-8 w-auto",
+  md: "h-12 w-auto",
+  lg: "h-16 w-auto",
+  xl: "h-20 sm:h-24 md:h-28 lg:h-32 w-auto",
 };
 
 export const ZoaWordmark: React.FC<ZoaWordmarkProps> = ({
@@ -26,10 +26,10 @@ export const ZoaWordmark: React.FC<ZoaWordmarkProps> = ({
       <Image
         src="/ZoaLogo.png"
         alt="ZOA"
-        width={200}
-        height={100}
+        width={360}
+        height={180}
         priority
-        className={`object-contain ${variant === "light" ? "brightness-0 invert" : ""}`}
+        className={`w-full h-full object-contain ${variant === "light" ? "brightness-0 invert" : ""}`}
       />
     </div>
   );

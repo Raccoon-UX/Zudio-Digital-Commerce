@@ -130,8 +130,8 @@ export const WebsiteLoader: React.FC = () => {
       {/* 5. Center Section — Logo, Tagline, Animated Progress Bar */}
       <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 -mt-4">
         {/* Official Geometric ZOA Logo */}
-        <div className="flex items-center justify-center mb-1">
-          <ZoaWordmark size="xl" variant="dark" className="h-12 sm:h-16 md:h-20 w-auto" />
+        <div className="flex items-center justify-center mb-2">
+          <ZoaWordmark size="xl" variant="dark" className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto" />
         </div>
 
         {/* Brand Tagline */}
