@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     subtitle: "Everyday fashion curated for you.",
   };
   return {
-    title: `${meta.title} | Zudio`,
+    title: `${meta.title} | ZOA`,
     description: meta.subtitle,
   };
 }

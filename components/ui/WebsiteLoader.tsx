@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { ZudioWordmark } from "@/components/ui/ZudioWordmark";
+import { ZoaWordmark } from "@/components/ui/ZoaWordmark";
 
 export const WebsiteLoader: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -53,7 +53,7 @@ export const WebsiteLoader: React.FC = () => {
       {/* 1. Subtle Watermark in Background */}
       <div className="absolute inset-x-0 bottom-[-4vw] flex justify-center pointer-events-none z-0 opacity-30 select-none">
         <span className="text-[18vw] font-black uppercase tracking-tighter text-neutral-200/80 leading-none font-['Michroma','Unbounded',sans-serif]">
-          ZUDIO
+          ZOA
         </span>
       </div>
 
@@ -62,13 +62,13 @@ export const WebsiteLoader: React.FC = () => {
         <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-neutral-950">
           <Image
             src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1200&auto=format&fit=crop"
-            alt="Zudio Store"
+            alt="ZOA Store"
             fill
             className="object-cover opacity-60 grayscale contrast-125"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <div className="absolute top-8 left-6">
-            <ZudioWordmark size="sm" variant="light" className="h-6 w-auto opacity-90" />
+            <ZoaWordmark size="sm" variant="light" className="h-6 w-auto opacity-90" />
           </div>
           <div className="absolute bottom-8 left-6 right-6">
             <p className="text-xl font-black uppercase tracking-tight text-white leading-tight">
@@ -129,9 +129,9 @@ export const WebsiteLoader: React.FC = () => {
 
       {/* 5. Center Section — Logo, Tagline, Animated Progress Bar */}
       <div className="relative z-20 flex flex-col items-center justify-center text-center px-4 -mt-4">
-        {/* Official Geometric Zudio Wordmark */}
+        {/* Official Geometric ZOA Logo */}
         <div className="flex items-center justify-center mb-1">
-          <ZudioWordmark size="xl" variant="dark" className="h-12 sm:h-16 md:h-20 w-auto" />
+          <ZoaWordmark size="xl" variant="dark" className="h-12 sm:h-16 md:h-20 w-auto" />
         </div>
 
         {/* Brand Tagline */}

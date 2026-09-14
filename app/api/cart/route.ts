@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    let sessionToken = request.cookies.get("zudio_cart_session")?.value;
+    let sessionToken = request.cookies.get("zoa_cart_session")?.value || request.cookies.get("zudio_cart_session")?.value;
     let shouldSetCookie = false;
 
     if (!user && !sessionToken) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     if (shouldSetCookie && sessionToken) {
       response.cookies.set({
-        name: "zudio_cart_session",
+        name: "zoa_cart_session",
         value: sessionToken,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const sessionToken = request.cookies.get("zudio_cart_session")?.value;
+    const sessionToken = request.cookies.get("zoa_cart_session")?.value || request.cookies.get("zudio_cart_session")?.value;
 
     const cart = await getOrCreateCart(user?.id, user ? null : sessionToken);
     await clearCart(cart.id);

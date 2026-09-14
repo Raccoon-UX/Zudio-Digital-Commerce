@@ -663,7 +663,7 @@ function mapReservationToDTO(r: any): ReservationDTO {
       id: r.variant.product.id,
       name: r.variant.product.name,
       slug: r.variant.product.slug,
-      imageUrl: r.variant.product.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=Zudio",
+      imageUrl: r.variant.product.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=ZOA",
       variantId: r.variant.id,
       sku: r.variant.sku,
       sizeName: r.variant.size.name,

@@ -7,7 +7,7 @@ import { Metadata } from "next";
 export const revalidate = 60; // ISR cache on Edge for 60 seconds
 
 export const metadata: Metadata = {
-  title: "All Products | Zudio",
+  title: "All Products | ZOA",
   description: "Browse the latest everyday fashion across menswear, womenswear, kidswear, and footwear.",
 };
 

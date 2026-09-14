@@ -35,7 +35,7 @@ export const DemoQRModal: React.FC<DemoQRModalProps> = ({
         aria-hidden="true"
       />
 
-      {/* Clean Premium Solid White Modal Surface (Matches Stitch & Zudio Design) */}
+      {/* Clean Premium Solid White Modal Surface (Matches Stitch & ZOA Design) */}
       <div className="relative w-full max-w-md bg-white border border-neutral-200 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 animate-in zoom-in-95 duration-200 text-center space-y-4 max-h-[92vh] overflow-y-auto">
         {/* Top Header Bar */}
         <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
@@ -95,7 +95,7 @@ export const DemoQRModal: React.FC<DemoQRModalProps> = ({
             <span className="text-[11px] uppercase tracking-wide">Prototype Notice</span>
           </div>
           <p className="text-[11px] leading-relaxed text-amber-900/90">
-            This QR code is an illustrative prototype interface for Zudio Digital Commerce. To complete a verified test payment with cryptographic proof and inventory commitment, proceed to the <strong className="text-amber-950 font-bold">Razorpay Test Gateway</strong>.
+            This QR code is an illustrative prototype interface for ZOA Digital Commerce. To complete a verified test payment with cryptographic proof and inventory commitment, proceed to the <strong className="text-amber-950 font-bold">Razorpay Test Gateway</strong>.
           </p>
         </div>
 

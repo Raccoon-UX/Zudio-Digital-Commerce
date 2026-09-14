@@ -624,7 +624,7 @@ export default function ProfilePage() {
                       &ldquo;Style is a way of saying who you are without having to speak.&rdquo;
                     </p>
                     <span className="text-[10px] font-bold tracking-widest uppercase text-neutral-400 block mt-1">
-                      — Zudio Editorial
+                      — ZOA Editorial
                     </span>
                   </div>
 
@@ -1099,7 +1099,7 @@ export default function ProfilePage() {
                       <MaterialIcon name="location_city" size={20} />
                     </div>
                     <h3 className="text-base font-black text-neutral-950 tracking-tight">
-                      Find Your Nearest Zudio Store
+                      Find Your Nearest ZOA Store
                     </h3>
                     <p className="text-xs text-neutral-500 font-medium leading-relaxed">
                       Check in-store availability, try on fitting room styles, and explore local collections.

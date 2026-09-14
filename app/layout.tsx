@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { WebsiteLoader } from "@/components/ui/WebsiteLoader";
-import { ImportantNoticeModal } from "@/components/ui/ImportantNoticeModal";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
@@ -13,17 +12,17 @@ const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL;
 const validAppUrl =
   rawAppUrl && (rawAppUrl.startsWith("http://") || rawAppUrl.startsWith("https://"))
     ? rawAppUrl
-    : "https://zudio.demo";
+    : "https://zoa.demo";
 
 export const metadata: Metadata = {
   metadataBase: new URL(validAppUrl),
   title: {
     template: `%s | ${APP_CONFIG.name}`,
-    default: `${APP_CONFIG.name} — Fashion for Everyday (Concept Pilot)`,
+    default: `${APP_CONFIG.name} — Fashion for Everyday`,
   },
   description: APP_CONFIG.description,
-  keywords: ["fashion", "everyday fashion", "menswear", "womenswear", "footwear", "store locator", "omnichannel pilot"],
-  authors: [{ name: "Zudio Concept Pilot Engineering Team" }],
+  keywords: ["fashion", "everyday fashion", "menswear", "womenswear", "footwear", "store locator", "omnichannel pilot", "zoa"],
+  authors: [{ name: "ZOA Engineering Team" }],
   openGraph: {
     title: `${APP_CONFIG.name} — Fashion for Everyday`,
     description: APP_CONFIG.description,
@@ -81,7 +80,6 @@ export default function RootLayout({
           }}
         />
         <WebsiteLoader />
-        <ImportantNoticeModal />
         <SessionProvider>
           <Header />
           <main className="flex-1">{children}</main>

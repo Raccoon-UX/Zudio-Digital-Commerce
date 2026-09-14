@@ -162,7 +162,7 @@ export async function getStoreBySlug(slug: string): Promise<StoreDetailDTO | nul
       colorName: inv.variant.color.name,
       colorHex: inv.variant.color.hexCode,
       price: Number(inv.variant.price),
-      imageUrl: inv.variant.product.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=Zudio",
+      imageUrl: inv.variant.product.images[0]?.url || "https://placehold.co/400x533/f5f5f5/333333.png?text=ZOA",
       quantity: inv.quantity,
       reservedQuantity: inv.reservedQuantity,
       availableQuantity,

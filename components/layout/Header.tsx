@@ -8,7 +8,7 @@ import { Container } from "@/components/ui/Container";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { NAVIGATION_LINKS, APP_CONFIG } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { ZudioLogo } from "./ZudioLogo";
+import { ZoaLogo } from "./ZoaLogo";
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -47,10 +47,10 @@ export const Header: React.FC = () => {
     const term = searchQuery.trim();
     if (term) {
       try {
-        const stored = localStorage.getItem("zudio_recent_searches");
+        const stored = localStorage.getItem("zoa_recent_searches") || localStorage.getItem("zudio_recent_searches");
         const list: string[] = stored ? JSON.parse(stored) : [];
         const updated = [term, ...list.filter((item) => item.toLowerCase() !== term.toLowerCase())].slice(0, 8);
-        localStorage.setItem("zudio_recent_searches", JSON.stringify(updated));
+        localStorage.setItem("zoa_recent_searches", JSON.stringify(updated));
       } catch {}
       router.push(`/search?q=${encodeURIComponent(term)}`);
     }
@@ -97,8 +97,8 @@ export const Header: React.FC = () => {
               <MaterialIcon name={isMobileMenuOpen ? "close" : "menu"} size="lg" />
             </button>
 
-            <Link href="/" className="flex items-center shrink-0 group" aria-label="Zudio Home">
-              <ZudioLogo className="w-[92px] sm:w-[104px] lg:w-[114px] h-auto text-neutral-950 transition-transform group-hover:scale-[1.02]" />
+            <Link href="/" className="flex items-center shrink-0 group" aria-label="ZOA Home">
+              <ZoaLogo className="w-[92px] sm:w-[104px] lg:w-[114px] h-auto text-neutral-950 transition-transform group-hover:scale-[1.02]" />
             </Link>
           </div>
 

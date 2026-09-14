@@ -45,7 +45,7 @@ export const ReservationSlip: React.FC<ReservationSlipProps> = ({
       {/* Top Header */}
       <div className="bg-black text-white p-6 text-center space-y-2">
         <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-          Zudio Digital Commerce · Concept Pilot
+          ZOA Digital Commerce · Concept Pilot
         </span>
         <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight font-mono">
           IN-STORE PICKUP PASS

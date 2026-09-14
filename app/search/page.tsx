@@ -21,7 +21,7 @@ const POPULAR_SEARCHES = [
   "Denim Jackets",
 ];
 
-const RECENT_SEARCHES_STORAGE_KEY = "zudio_recent_searches";
+const RECENT_SEARCHES_STORAGE_KEY = "zoa_recent_searches";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -58,7 +58,7 @@ function SearchContent() {
   // Load recent searches from localStorage on client mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY);
+      const stored = localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY) || localStorage.getItem("zudio_recent_searches");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {

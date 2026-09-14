@@ -30,7 +30,7 @@ export const AdminSidebar: React.FC = () => {
       <div className="space-y-6">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block">
-            Zudio Enterprise
+            ZOA Enterprise
           </span>
           <h2 className="text-xl font-black uppercase tracking-tight text-white">
             Admin Console

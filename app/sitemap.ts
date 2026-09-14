@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
     rawBase && (rawBase.startsWith("http://") || rawBase.startsWith("https://"))
       ? rawBase
-      : "https://zudio.demo";
+      : "https://zoa.demo";
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [

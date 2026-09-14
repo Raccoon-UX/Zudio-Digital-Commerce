@@ -1,5 +1,5 @@
 /**
- * Avatar image validation and binary processing utility for Zudio Digital Commerce.
+ * Avatar image validation and binary processing utility for ZOA Digital Commerce.
  * Enforces strict MIME, magic byte, and size checks.
  * Ensures User.image and JWT cookies store only lightweight URL paths (/api/user/avatar/<userId>).
  */

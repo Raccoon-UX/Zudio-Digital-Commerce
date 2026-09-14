@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    const sessionToken = request.cookies.get("zudio_cart_session")?.value;
+    const sessionToken = request.cookies.get("zoa_cart_session")?.value || request.cookies.get("zudio_cart_session")?.value;
 
     const validation = await validateCheckout(user?.id, user ? null : sessionToken);
     return apiSuccess(validation);

@@ -193,7 +193,7 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                 Check Store Availability
               </h2>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Find nearby Zudio retail stores and real-time stock for instant 2-hour hold.
+                Find nearby ZOA retail stores and real-time stock for instant 2-hour hold.
               </p>
             </div>
 
@@ -208,7 +208,7 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                   />
                 ) : (
                   <div className="w-11 h-14 rounded-lg bg-neutral-900 text-white flex items-center justify-center shrink-0 text-[10px] font-bold">
-                    ZUDIO
+                    ZOA
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
@@ -435,7 +435,7 @@ export const StoreAvailabilityModal: React.FC<StoreAvailabilityModalProps> = ({
                       <div className="w-11 h-11 rounded-xl bg-neutral-900 text-white flex flex-col items-center justify-center shrink-0 shadow-sm">
                         <MaterialIcon name="storefront" size="xs" />
                         <span className="text-[8px] font-black tracking-tighter uppercase mt-0.5">
-                          ZUDIO
+                          ZOA
                         </span>
                       </div>
 
