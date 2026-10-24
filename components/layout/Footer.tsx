@@ -72,7 +72,7 @@ export const Footer: React.FC = () => {
             {/* Brand Column */}
             <div className="md:col-span-4 space-y-4">
               <Link href="/" className="inline-flex items-center gap-2">
-                <ZoaLogo variant="light" className="w-[104px] h-auto text-white" />
+                <ZoaLogo variant="light" className="w-[124px] lg:w-[136px] h-auto text-white" />
               </Link>
               <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
                 Effortless style for everyday life. Shop the latest trends in high-street fashion with uncompromised quality and unbeatable value.
