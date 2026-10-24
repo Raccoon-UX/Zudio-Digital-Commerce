@@ -122,8 +122,16 @@ export async function getStores(filters?: {
 }
 
 export async function getStoreBySlug(slug: string): Promise<StoreDetailDTO | null> {
-  const store = await prisma.store.findUnique({
-    where: { slug },
+  const cleanSlug = slug.trim().toLowerCase();
+  const store = await prisma.store.findFirst({
+    where: {
+      OR: [
+        { slug: cleanSlug },
+        { slug: cleanSlug.replace(/^zudio-/, "zoa-") },
+        { slug: cleanSlug.replace(/^zoa-/, "zudio-") },
+      ],
+      isActive: true,
+    },
     include: {
       inventories: {
         include: {

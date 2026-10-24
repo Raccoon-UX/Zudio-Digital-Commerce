@@ -238,6 +238,8 @@ export async function getProductByIdOrSlug(idOrSlug: string): Promise<ProductDet
         OR: [
           ...(isCuid ? [{ id: idOrSlug }] : []),
           { slug: idOrSlug },
+          { slug: cleanKey.replace(/^zudio-/, "zoa-") },
+          { slug: cleanKey.replace(/^zoa-/, "zudio-") },
         ],
         isActive: true,
       },

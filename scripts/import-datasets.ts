@@ -117,7 +117,7 @@ function parseCsvLine(line: string): string[] {
 
 export async function importDataset() {
   console.log("==========================================================");
-  console.log(" POPULATING ZUDIO DIGITAL COMMERCE FROM CSV DATASET");
+  console.log(" POPULATING ZOA DIGITAL COMMERCE FROM CSV DATASET");
   console.log("==========================================================\n");
 
   const csvPath = path.join(process.cwd(), "datasets", "Zudio_sales_data.csv");
@@ -230,8 +230,8 @@ export async function importDataset() {
         const geo = CITY_COORDINATES[city] || { lat: 12.9716, lng: 77.5946, defaultState: state || "Karnataka" };
         canonicalStoreData.set(storeNumber, {
           storeNumber,
-          name: `Zudio ${city} (Store #${storeNumber})`,
-          slug: `zudio-store-${storeNumber}`,
+          name: `ZOA ${city} (Store #${storeNumber})`,
+          slug: `zoa-store-${storeNumber}`,
           city,
           state: geo.defaultState,
           pincode: postalCode && postalCode.length >= 6 ? postalCode.substring(0, 6) : "560038",
@@ -265,8 +265,8 @@ export async function importDataset() {
   for (let num = 1; num <= 100; num++) {
     const sData = canonicalStoreData.get(num) || {
       storeNumber: num,
-      name: `Zudio Retail Store #${num}`,
-      slug: `zudio-store-${num}`,
+      name: `ZOA Retail Store #${num}`,
+      slug: `zoa-store-${num}`,
       city: "Bengaluru",
       state: "Karnataka",
       pincode: "560038",
@@ -415,13 +415,13 @@ export async function importDataset() {
     const categoryId = categoryMap[targetCatSlug];
 
     const cleanTitle = `${displayCategory}'s ${pInfo.clothingType === "Shoes" ? "Everyday Comfort Sneakers" : "Essential " + pInfo.clothingType} (Style #${pid})`;
-    const slug = `zudio-${targetCatSlug}-${pInfo.clothingType.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${pid}`;
+    const slug = `zoa-${targetCatSlug}-${pInfo.clothingType.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${pid}`;
 
     const product = await prisma.product.upsert({
       where: { slug },
       update: {
         name: cleanTitle,
-        description: `Premium quality ${pInfo.clothingType.toLowerCase()} from Zudio's ${pInfo.category} everyday collection. Crafted with breathable fabrics, tailored comfort, and modern minimalist styling.`,
+        description: `Premium quality ${pInfo.clothingType.toLowerCase()} from ZOA's ${pInfo.category} everyday collection. Crafted with breathable fabrics, tailored comfort, and modern minimalist styling.`,
         details: "Material: 100% Breathable Combed Cotton / Performance Blend. Machine wash cold with similar colors. Made in India.",
         categoryId,
         isActive: true,
@@ -431,7 +431,7 @@ export async function importDataset() {
       create: {
         name: cleanTitle,
         slug,
-        description: `Premium quality ${pInfo.clothingType.toLowerCase()} from Zudio's ${pInfo.category} everyday collection. Crafted with breathable fabrics, tailored comfort, and modern minimalist styling.`,
+        description: `Premium quality ${pInfo.clothingType.toLowerCase()} from ZOA's ${pInfo.category} everyday collection. Crafted with breathable fabrics, tailored comfort, and modern minimalist styling.`,
         details: "Material: 100% Breathable Combed Cotton / Performance Blend. Machine wash cold with similar colors. Made in India.",
         categoryId,
         isActive: true,
