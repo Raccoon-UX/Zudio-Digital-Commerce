@@ -17,6 +17,7 @@ export type ErrorCode =
   | "RESERVATION_NOT_FOUND"
   | "RESERVATION_EXPIRED"
   | "RATE_LIMIT_EXCEEDED"
+  | "AI_SERVICE_UNAVAILABLE"
   | "INTERNAL_SERVER_ERROR";
 
 export interface ApiErrorResponse {

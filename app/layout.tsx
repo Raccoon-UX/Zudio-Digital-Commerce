@@ -5,6 +5,7 @@ import { WebsiteLoader } from "@/components/ui/WebsiteLoader";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { AiChatWidget } from "@/components/ai/AiChatWidget";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { APP_CONFIG } from "@/lib/constants";
 
@@ -85,6 +86,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <MobileNav />
+          <AiChatWidget />
         </SessionProvider>
       </body>
     </html>

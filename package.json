@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx scripts/test-phase4-unit.ts",
+    "test:ai": "tsx scripts/test-ai-assistant.ts",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
